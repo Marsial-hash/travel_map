@@ -1,0 +1,25 @@
+{
+  "name": "旅行手记 · 城市卡片",
+  "short_name": "旅行手记",
+  "description": "记录每一次出发，为下次重逢做攻略",
+  "start_url": "/travel_map/",
+  "scope": "/travel_map/",
+  "display": "standalone",
+  "background_color": "#f3efe8",
+  "theme_color": "#1a1614",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
