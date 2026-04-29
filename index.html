@@ -1,0 +1,1283 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>旅行手记 · 城市卡片</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, "PingFang SC", "Microsoft YaHei", "Helvetica Neue", sans-serif;
+    background: #f3efe8;
+    color: #1a1614;
+    min-height: 100vh;
+  }
+
+  /* ===== Header ===== */
+  .header {
+    background: linear-gradient(160deg, #1a1614 0%, #2d261f 50%, #1a1614 100%);
+    padding: 48px 24px 36px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::after {
+    content: '';
+    position: absolute; bottom: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, #c8a97e, transparent);
+  }
+  .header::before {
+    content: '';
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse at 30% 20%, rgba(200,169,126,0.07) 0%, transparent 50%),
+      radial-gradient(ellipse at 70% 80%, rgba(200,169,126,0.05) 0%, transparent 50%);
+  }
+  .header h1 {
+    font-size: 30px; font-weight: 700; color: #fff;
+    letter-spacing: 4px; position: relative;
+    font-family: "Noto Serif SC", serif;
+  }
+  .header h1 span { color: #c8a97e; }
+  .header .sub {
+    color: #908070; margin-top: 10px;
+    font-size: 13px; letter-spacing: 2px; position: relative;
+  }
+  .header .home-tag {
+    display: inline-block; margin-top: 14px;
+    padding: 5px 18px;
+    background: rgba(200,169,126,0.08);
+    border: 1px solid rgba(200,169,126,0.15);
+    border-radius: 20px;
+    color: #c8a97e; font-size: 12px;
+    letter-spacing: 0.5px; position: relative;
+  }
+
+  /* ===== Toolbar ===== */
+  .toolbar {
+    max-width: 1280px; margin: 0 auto; padding: 22px 24px 0;
+    display: flex; justify-content: flex-end; align-items: center; gap: 10px; flex-wrap: wrap;
+  }
+  .city-count {
+    font-size: 12px; color: #908070; margin-right: auto;
+    background: #e8e1d8; padding: 5px 14px; border-radius: 20px;
+    letter-spacing: 0.3px;
+  }
+  .btn {
+    padding: 9px 20px; border: none; border-radius: 8px;
+    cursor: pointer; font-size: 13px; font-weight: 600;
+    transition: all 0.25s; display: inline-flex; align-items: center; gap: 5px;
+  }
+  .btn-primary {
+    background: #1a1614; color: #fff;
+  }
+  .btn-primary:hover { background: #2d261f; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(26,22,20,0.2); }
+  .btn-outline { background: transparent; color: #6b5d4f; border: 1px solid #ddd6ce; }
+  .btn-outline:hover { background: #e8e1d8; border-color: #c8b8a8; }
+  .btn-gold { background: #c8a97e; color: #fff; }
+  .btn-gold:hover { background: #b8956a; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(200,169,126,0.3); }
+  .btn-sm { padding: 6px 14px; font-size: 12px; }
+
+  /* ===== Filter Bar ===== */
+  .filter-bar {
+    max-width: 1280px; margin: 16px auto 0; padding: 0 24px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .filter-bar label {
+    font-size: 12px; font-weight: 600; color: #908070;
+    letter-spacing: 0.5px; white-space: nowrap;
+  }
+  .filter-bar select {
+    padding: 7px 28px 7px 12px; border: 1px solid #ddd6ce;
+    border-radius: 7px; font-size: 13px; font-family: inherit;
+    background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23908070'/%3E%3C/svg%3E") no-repeat right 10px center;
+    cursor: pointer; transition: all 0.2s; min-width: 100px;
+    appearance: none; color: #1a1614;
+  }
+  .filter-bar select:focus { outline: none; border-color: #c8a97e; box-shadow: 0 0 0 3px rgba(200,169,126,0.1); }
+  .filter-bar .sep { color: #ddd6ce; font-size: 13px; }
+
+  /* ===== Grid ===== */
+  .grid {
+    max-width: 1280px; margin: 20px auto; padding: 0 24px 48px;
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(370px, 1fr)); gap: 20px;
+  }
+
+  /* ===== Card ===== */
+  .card {
+    background: #fff; border-radius: 14px; overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 6px 20px rgba(0,0,0,0.05);
+    transition: transform 0.3s, box-shadow 0.3s;
+    position: relative;
+  }
+  .card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #c8a97e, #dcc4a0, #c8a97e);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .card:hover { transform: translateY(-4px); box-shadow: 0 6px 16px rgba(0,0,0,0.06), 0 16px 48px rgba(0,0,0,0.08); }
+  .card:hover::before { opacity: 1; }
+
+  .card-head {
+    padding: 22px 22px 16px;
+    background: linear-gradient(135deg, #faf8f6, #f3efe8);
+    display: flex; justify-content: space-between; align-items: flex-start;
+  }
+  .card-head .name {
+    font-size: 22px; font-weight: 700; color: #1a1614;
+    letter-spacing: 1px;
+  }
+  .card-head .name-en {
+    font-size: 11px; color: #b0a090; letter-spacing: 1.5px;
+    margin-top: 2px; text-transform: uppercase; font-weight: 500;
+  }
+
+  .card-actions { display: flex; gap: 4px; opacity: 0; transition: opacity 0.25s; }
+  .card:hover .card-actions { opacity: 1; }
+  .btn-icon {
+    width: 28px; height: 28px; border: none; border-radius: 6px;
+    cursor: pointer; font-size: 13px; transition: all 0.2s;
+    background: transparent; color: #b0a090;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .btn-icon:hover { background: #fff; color: #1a1614; }
+  .btn-icon.danger:hover { background: #fde8e8; color: #dc2626; }
+
+  .card-body { padding: 16px 22px 22px; display: flex; flex-direction: column; gap: 10px; }
+
+  /* ===== Distance ===== */
+  .info-block.distance {
+    background: linear-gradient(135deg, #faf8f6, #f3efe8);
+    padding: 13px 16px; border-radius: 10px;
+    border-left: 3px solid #c8a97e;
+  }
+  .info-block.distance .label {
+    font-size: 11px; font-weight: 600; color: #908070;
+    letter-spacing: 0.5px; margin-bottom: 4px;
+    display: flex; align-items: center; gap: 4px;
+  }
+  .info-block.distance .label .route { color: #c8a97e; font-weight: 700; }
+  .info-block.distance .value { font-size: 15px; font-weight: 600; color: #1a1614; }
+
+  /* ===== Info Grid ===== */
+  .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .info-cell {
+    background: #faf8f6; border-radius: 10px; padding: 11px 13px;
+    transition: background 0.15s;
+  }
+  .info-cell:hover { background: #f3efe8; }
+  .info-cell.full { grid-column: 1 / -1; }
+
+  .info-cell .label {
+    font-size: 10px; font-weight: 700; color: #b0a090;
+    letter-spacing: 0.8px; margin-bottom: 6px;
+    text-transform: uppercase; display: flex; align-items: center; gap: 4px;
+  }
+
+  /* ===== Place Entries ===== */
+  .place-list { display: flex; flex-direction: column; gap: 5px; }
+
+  .place-entry {
+    background: #fff; border-radius: 7px; padding: 7px 10px;
+    border-left: 3px solid #e0d7ce;
+    width: 100%; transition: background 0.15s;
+  }
+  .place-entry:hover { background: #faf8f6; }
+  .place-entry .p-name { font-size: 13px; font-weight: 600; color: #1a1614; }
+  .place-entry .p-addr {
+    font-size: 11px; color: #6b5d4f; margin-top: 2px;
+    line-height: 1.4; padding-left: 2px;
+  }
+  .place-entry .p-addr::before { content: '📍 '; }
+
+  .place-entry.no-addr {
+    border-left-color: #ddd6ce; padding: 5px 10px;
+    display: inline-block; width: auto;
+  }
+  .place-entry.no-addr .p-name { font-size: 13px; font-weight: 500; }
+
+  .tag-list { display: flex; flex-wrap: wrap; gap: 4px; }
+  .tag {
+    display: inline-block; background: #fff; padding: 3px 9px;
+    border-radius: 5px; font-size: 12px; color: #1a1614;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    transition: background 0.15s;
+  }
+  .tag:hover { background: #f3efe8; }
+
+  .text-value { font-size: 13px; line-height: 1.5; color: #1a1614; }
+
+  .info-cell.full .place-list { flex-direction: row; flex-wrap: wrap; }
+  .info-cell.full .place-entry { width: auto; flex: 1 1 auto; min-width: 130px; }
+
+  /* ===== Province Section ===== */
+  .province-header {
+    grid-column: 1 / -1;
+    display: flex; align-items: center; gap: 12px;
+    margin: 12px 0 4px; padding: 14px 0 0;
+    position: relative;
+  }
+  .province-header::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, #e0d7ce, #e0d7ce 60%, transparent);
+  }
+  .province-header:first-of-type::before { display: none; }
+  .province-header:first-of-type { margin-top: 0; }
+
+  .province-header .icon {
+    width: 30px; height: 30px;
+    background: linear-gradient(135deg, #c8a97e, #b8956a);
+    border-radius: 7px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; color: #fff; flex-shrink: 0;
+  }
+  .province-header .name {
+    font-size: 16px; font-weight: 700; color: #1a1614;
+    letter-spacing: 1px;
+  }
+  .province-header .count {
+    font-size: 11px; color: #908070;
+    background: #e8e1d8; padding: 2px 10px; border-radius: 10px;
+    margin-left: auto; font-weight: 500;
+  }
+
+  /* ===== Empty ===== */
+  .empty-state {
+    grid-column: 1 / -1; text-align: center;
+    padding: 80px 20px; color: #b0a090;
+  }
+  .empty-state .icon { font-size: 48px; margin-bottom: 14px; opacity: 0.6; }
+  .empty-state h3 { font-size: 17px; color: #6b5d4f; margin-bottom: 6px; font-weight: 600; }
+
+  /* ===== Modal ===== */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(26,22,20,0.5); z-index: 100;
+    align-items: flex-start; justify-content: center;
+    backdrop-filter: blur(6px); padding: 40px 20px;
+    overflow-y: auto;
+  }
+  .modal-overlay.active { display: flex; }
+
+  .modal {
+    background: #fff; border-radius: 16px;
+    width: 100%; max-width: 580px;
+    margin-top: 20px;
+    box-shadow: 0 25px 80px rgba(26,22,20,0.2);
+    overflow: hidden;
+    animation: modalIn 0.25s ease-out;
+  }
+  @keyframes modalIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .modal-head {
+    padding: 20px 28px 16px;
+    border-bottom: 1px solid #eee8e0;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .modal-head .title { font-size: 17px; font-weight: 700; color: #1a1614; }
+  .modal-head .close-btn {
+    width: 28px; height: 28px; border: none; border-radius: 6px;
+    background: transparent; cursor: pointer; font-size: 16px;
+    color: #b0a090; transition: all 0.15s;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .modal-head .close-btn:hover { background: #f3efe8; color: #1a1614; }
+
+  .modal-body { padding: 22px 28px 28px; max-height: 70vh; overflow-y: auto; }
+
+  /* ===== Smart Paste ===== */
+  .smart-paste {
+    background: #faf8f6; border-radius: 10px; overflow: hidden;
+    margin-bottom: 20px; border: 1px solid #eee8e0;
+  }
+  .smart-paste-header {
+    padding: 12px 16px; cursor: pointer;
+    display: flex; justify-content: space-between; align-items: center;
+    user-select: none; font-size: 13px; font-weight: 600; color: #6b5d4f;
+    transition: background 0.15s;
+  }
+  .smart-paste-header:hover { background: #f3efe8; }
+  .smart-paste-header .arrow { transition: transform 0.2s; font-size: 11px; color: #b0a090; }
+  .smart-paste-header.open .arrow { transform: rotate(90deg); }
+
+  .smart-paste-body { display: none; padding: 0 16px 16px; }
+  .smart-paste-body.open { display: block; }
+
+  .smart-paste textarea {
+    width: 100%; padding: 12px; border: 1px solid #ddd6ce;
+    border-radius: 8px; font-size: 13px; font-family: inherit;
+    background: #fff; resize: vertical; min-height: 140px; line-height: 1.6;
+    transition: border 0.2s;
+  }
+  .smart-paste textarea:focus { outline: none; border-color: #c8a97e; box-shadow: 0 0 0 3px rgba(200,169,126,0.08); }
+  .smart-paste .hint {
+    font-size: 11px; color: #908070; margin: 8px 0 10px; line-height: 1.6;
+  }
+  .smart-paste .hint code {
+    background: #e8e1d8; padding: 1px 6px; border-radius: 3px; font-size: 11px; color: #6b5d4f;
+  }
+  .smart-paste-actions { display: flex; gap: 8px; }
+
+  /* ===== Form ===== */
+  .form-section-title {
+    font-size: 12px; font-weight: 700; color: #6b5d4f;
+    margin-bottom: 14px; letter-spacing: 0.5px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .form-section-title::after { content: ''; flex: 1; height: 1px; background: #eee8e0; margin-left: 8px; }
+
+  .form-group { margin-bottom: 14px; }
+  .form-group:last-child { margin-bottom: 0; }
+  .form-group label {
+    display: block; font-size: 12px; font-weight: 600;
+    color: #6b5d4f; margin-bottom: 4px; letter-spacing: 0.3px;
+  }
+  .form-group input,
+  .form-group textarea {
+    width: 100%; padding: 9px 12px; border: 1px solid #ddd6ce;
+    border-radius: 7px; font-size: 13px; font-family: inherit;
+    background: #faf8f6; transition: all 0.2s; resize: vertical;
+  }
+  .form-group select {
+    width: 100%; padding: 9px 28px 9px 10px; border: 1px solid #ddd6ce;
+    border-radius: 7px; font-size: 13px; font-family: inherit;
+    background: #faf8f6 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23908070'/%3E%3C/svg%3E") no-repeat right 10px center;
+    transition: all 0.2s; appearance: none; cursor: pointer;
+  }
+  .form-group select:focus,
+  .form-group input:focus,
+  .form-group textarea:focus {
+    outline: none; border-color: #c8a97e; background: #fff;
+    box-shadow: 0 0 0 3px rgba(200,169,126,0.1);
+  }
+  .form-group textarea { min-height: 50px; }
+  .form-group .field-hint { font-size: 11px; color: #b0a090; margin-top: 3px; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+  .modal-foot {
+    padding: 16px 28px 20px;
+    border-top: 1px solid #eee8e0;
+    display: flex; gap: 10px; justify-content: flex-end;
+  }
+  .btn-secondary { background: #f0e8df; color: #4a3f35; }
+  .btn-secondary:hover { background: #e0d7ce; }
+
+  /* ===== Toast ===== */
+  .toast {
+    position: fixed; bottom: 28px; left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: #1a1614; color: #fff;
+    padding: 10px 22px; border-radius: 8px;
+    font-size: 13px; opacity: 0; transition: all 0.35s;
+    z-index: 200; pointer-events: none;
+    box-shadow: 0 4px 24px rgba(26,22,20,0.25);
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* ===== Responsive ===== */
+  @media (max-width: 768px) {
+    .grid { grid-template-columns: 1fr; gap: 14px; padding: 0 16px 32px; }
+    .info-grid { grid-template-columns: 1fr; }
+    .form-row { grid-template-columns: 1fr; }
+    .header h1 { font-size: 22px; }
+    .toolbar { flex-direction: column; align-items: stretch; padding: 16px 16px 0; }
+    .city-count { text-align: center; }
+    .toolbar .btn { justify-content: center; }
+    .filter-bar { flex-wrap: wrap; }
+    .filter-bar select { min-width: 80px; flex: 1; }
+    .modal { margin-top: 0; }
+    .modal-body { padding: 18px 20px 22px; }
+    .modal-foot { padding: 14px 20px 18px; }
+    .card-head .name { font-size: 19px; }
+    .card-actions { opacity: 1; }
+  }
+
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #ddd6ce; border-radius: 2px; }
+  ::-webkit-scrollbar-thumb:hover { background: #c8b8a8; }
+
+  @media (max-width: 480px) {
+    .card-body { padding: 12px 14px 16px; }
+    .info-grid { gap: 6px; }
+    .info-cell { padding: 9px 11px; }
+    .form-group { margin-bottom: 12px; }
+  }
+
+  /* ===== Card fade-in ===== */
+  .card { animation: cardFadeIn 0.4s ease-out both; }
+  @keyframes cardFadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== Header ===== -->
+<div class="header">
+  <h1>✈ 旅行手记 · <span>城市卡片</span></h1>
+  <p class="sub">记录每一次出发 · 为下次重逢做攻略</p>
+  <span class="home-tag">📍 深圳 · 龙岗区坂田街道恒大都会广场</span>
+</div>
+
+<!-- ===== Toolbar ===== -->
+<div class="toolbar">
+  <div class="city-count" id="cityCount">共 0 座城市</div>
+  <button class="btn btn-outline btn-sm" onclick="exportData()">📥 导出</button>
+  <button class="btn btn-primary" onclick="openAddModal()">＋ 添加城市</button>
+</div>
+
+<!-- ===== Filter Bar ===== -->
+<div class="filter-bar" id="filterBar">
+  <label>🔍 筛选</label>
+  <select id="filterProvince" onchange="onFilterChange()">
+    <option value="">全部省份</option>
+  </select>
+  <span class="sep">/</span>
+  <select id="filterCity" onchange="onFilterChange()">
+    <option value="">全部城市</option>
+  </select>
+</div>
+
+<!-- ===== Grid ===== -->
+<div class="grid" id="grid"></div>
+
+<!-- ===== Toast ===== -->
+<div class="toast" id="toast"></div>
+
+<!-- ===== Modal ===== -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="title" id="modalTitle">添加城市</span>
+      <button class="close-btn" onclick="closeModal()">✕</button>
+    </div>
+
+    <div class="modal-body">
+      <input type="hidden" id="editIndex" value="">
+
+      <!-- Smart Paste -->
+      <div class="smart-paste" id="smartPaste">
+        <div class="smart-paste-header" onclick="toggleSmartPaste()">
+          <span>⚡ 智能粘贴</span>
+          <span class="arrow">▶</span>
+        </div>
+        <div class="smart-paste-body" id="smartPasteBody">
+          <div class="hint">
+            粘贴你的旅行笔记，自动解析填入下方表单。标准格式：<br>
+            <code>省份名：</code><br>
+            <code>城市名：</code><br>
+            <code>距离：xxx</code> <code>景点：xx（地址）/ xx</code><br>
+            <code>餐饮：xx（地址）/ xx</code> <code>美食：xxx</code><br>
+            <code>住宿：xx（地址）/ xx</code> <code>月份：xxx</code>
+          </div>
+          <textarea id="smartInput" placeholder="例如：
+
+福建：
+厦门：
+距离：560公里（6小时）
+景点：鼓浪屿（厦门市思明区鼓浪屿）/ 园林博览苑（厦门市集美区）
+餐饮：老张饭店（厦门市海沧区嵩屿南路）
+美食：捞汁螺/水煮三鲜/姜母鸭
+住宿：鹭海湾海景酒店（厦门市海沧区嵩屿码头）
+月份：10月-11月"></textarea>
+          <div class="smart-paste-actions">
+            <button class="btn btn-gold btn-sm" onclick="parseSmartInput()">→ 解析填写</button>
+            <button class="btn btn-outline btn-sm" onclick="clearSmartInput()">清空</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Manual Form -->
+      <div class="form-section-title">📝 手动填写</div>
+
+      <div class="form-row" style="grid-template-columns: 100px 1fr 1fr;">
+        <div class="form-group">
+          <label>🌏 省份 <span style="color:#dc2626;">*</span></label>
+          <select id="fProvince" onchange="populateCities()">
+            <option value="">选择省份</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>🏙 城市名称 <span style="color:#dc2626;">*</span></label>
+          <select id="fCity" disabled onchange="citySelectChanged()">
+            <option value="">请先选择省份</option>
+          </select>
+          <div id="fCityCustomGroup" style="display:none;margin-top:6px;">
+            <input id="fCityCustom" placeholder="手动输入城市名称" style="width:100%;padding:9px 12px;border:1px solid #ddd6ce;border-radius:7px;font-size:13px;font-family:inherit;background:#faf8f6;">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>🏙 英文名（可选）</label>
+          <input id="fCityEn" placeholder="Guangzhou">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>🚗 距离 · 深圳家 → 目的地市政府</label>
+        <textarea id="fDistance" placeholder="例：560公里（约6小时）" rows="1"></textarea>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>🎯 景点</label>
+          <textarea id="fAttractions" placeholder="鼓浪屿（厦门市思明区鼓浪屿）" rows="2"></textarea>
+          <div class="field-hint">括号内写完整地址，多个用逗号分隔</div>
+        </div>
+        <div class="form-group">
+          <label>🍽 餐饮</label>
+          <textarea id="fRestaurants" placeholder="老张饭店（厦门市海沧区嵩屿南路）" rows="2"></textarea>
+          <div class="field-hint">括号内写完整地址，多个用逗号分隔</div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>🌮 美食</label>
+          <textarea id="fFoods" placeholder="捞汁螺, 水煮三鲜, 姜母鸭" rows="2"></textarea>
+        </div>
+        <div class="form-group">
+          <label>🏨 住宿</label>
+          <textarea id="fAccommodation" placeholder="鹭海湾海景酒店（厦门市海沧区嵩屿码头）" rows="2"></textarea>
+          <div class="field-hint">括号内写完整地址，多个用逗号分隔</div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>📅 最佳月份 / 季节</label>
+        <textarea id="fMonths" placeholder="例：10月-11月" rows="1"></textarea>
+      </div>
+    </div>
+
+    <div class="modal-foot">
+      <button class="btn btn-secondary" onclick="closeModal()">取消</button>
+      <button class="btn btn-primary" onclick="saveCity()">保存</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== Supabase Config =====
+const SUPABASE_URL = 'https://fmqthtgtzcsvjcfxfhce.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZtcXRodGd0emNzdmpjZnhmaGNlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0NTAwOTEsImV4cCI6MjA5MzAyNjA5MX0.-N-P-Va9RuMlnYyy1S9ikvWGksGaHXGQwORzgySoLeA';
+
+function supabaseHeaders() {
+  return { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' };
+}
+
+async function supabaseFetch() {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/travel_cities?order=id.asc`, { headers: supabaseHeaders() });
+  if (!res.ok) throw new Error(`Supabase fetch ${res.status}`);
+  return res.json();
+}
+
+async function supabaseInsert(data) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/travel_cities`, {
+    method: 'POST', headers: { ...supabaseHeaders(), Prefer: 'return=representation' }, body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error(`Supabase insert ${res.status}`);
+  return res.json();
+}
+
+async function supabaseUpdate(id, data) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/travel_cities?id=eq.${id}`, {
+    method: 'PATCH', headers: { ...supabaseHeaders(), Prefer: 'return=representation' }, body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error(`Supabase update ${res.status}`);
+  return res.json();
+}
+
+async function supabaseDelete(id) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/travel_cities?id=eq.${id}`, {
+    method: 'DELETE', headers: supabaseHeaders(),
+  });
+  if (!res.ok) throw new Error(`Supabase delete ${res.status}`);
+}
+
+function toCamelCase(row) {
+  return { id: row.id, province: row.province, city: row.city, cityEn: row.city_en || '', distance: row.distance || '', attractions: row.attractions || '', restaurants: row.restaurants || '', foods: row.foods || '', accommodation: row.accommodation || '', months: row.months || '' };
+}
+
+function toSnakeCase(d) {
+  return { province: d.province, city: d.city, city_en: d.cityEn || '', distance: d.distance || '', attractions: d.attractions || '', restaurants: d.restaurants || '', foods: d.foods || '', accommodation: d.accommodation || '', months: d.months || '' };
+}
+
+// ===== Sample Data =====
+const PROVINCES = [
+  '广东', '广西', '海南', '福建', '江西', '湖南',
+  '湖北', '四川', '贵州', '云南', '浙江', '江苏',
+  '上海', '北京', '天津', '重庆',
+  '安徽', '河南', '河北', '山东', '山西', '陕西',
+  '甘肃', '辽宁', '吉林', '黑龙江',
+  '内蒙古', '新疆', '西藏', '青海', '宁夏',
+  '香港', '澳门', '台湾', '海外'
+];
+
+function populateProvinces() {
+  const sel = document.getElementById('fProvince');
+  sel.innerHTML = '<option value="">选择省份</option>';
+  PROVINCES.forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p; opt.textContent = p;
+    sel.appendChild(opt);
+  });
+}
+
+const DEFAULT_DATA = [
+  {
+    province: '广东', city: '广州', cityEn: 'Guangzhou',
+    distance: '约145公里（约2小时）',
+    attractions: '广州塔（广州市海珠区阅江西路222号）, 沙面（广州市荔湾区沙面大街）, 陈家祠（广州市荔湾区中山七路）, 白云山（广州市白云区广园中路）',
+    restaurants: '炳胜品味（广州市天河区天河路385号）, 点都德（广州市荔湾区龙津中路567号）, 陶陶居（广州市荔湾区上下九第十甫路20号）',
+    foods: '肠粉, 煲仔饭, 白切鸡, 烧鹅, 虾饺',
+    accommodation: '天河区（广州市天河区·繁华商圈）, 越秀区（广州市越秀区·老城韵味）, 珠江新城（广州市天河区珠江新城CBD）',
+    months: '10月-12月（秋高气爽）'
+  },
+  {
+    province: '湖南', city: '长沙', cityEn: 'Changsha',
+    distance: '约800公里（约8小时）',
+    attractions: '岳麓山（长沙市岳麓区登高路58号）, 橘子洲（长沙市岳麓区橘子洲头2号）, 太平街（长沙市天心区太平街）, 湖南省博物馆（长沙市开福区东风路50号）',
+    restaurants: '费大厨辣椒炒肉（长沙市芙蓉区黄兴中路）, 茶颜悦色（长沙市芙蓉区五一广场）, 超级文和友（长沙市天心区湘江中路36号）',
+    foods: '臭豆腐, 糖油粑粑, 口味虾, 剁椒鱼头, 米粉',
+    accommodation: '五一广场（长沙市芙蓉区五一广场商圈）, 湘江路（长沙市天心区湘江中路沿线）',
+    months: '3月-5月、9月-11月'
+  },
+  {
+    province: '四川', city: '成都', cityEn: 'Chengdu',
+    distance: '约1700公里（约18小时）',
+    attractions: '大熊猫基地（成都市成华区熊猫大道1375号）, 宽窄巷子（成都市青羊区长顺街）, 锦里（成都市武侯区武侯祠大街231号）, 都江堰（成都市都江堰市公园路）',
+    restaurants: '陈麻婆豆腐（成都市青羊区青华路19号）, 蜀大侠火锅（成都市锦江区春熙路）, 马旺子川菜馆（成都市锦江区中纱帽街8号）',
+    foods: '火锅, 串串, 担担面, 夫妻肺片, 冰粉',
+    accommodation: '春熙路（成都市锦江区春熙路商圈）, 锦江区（成都市锦江区）, 太古里（成都市锦江区中纱帽街）',
+    months: '3月-6月、9月-11月（春秋最佳）'
+  },
+  {
+    province: '福建', city: '厦门', cityEn: 'Xiamen',
+    distance: '约560公里（约6小时）',
+    attractions: '鼓浪屿（厦门市思明区鼓浪屿）, 园林博览苑（厦门市集美区集杏海堤66号）, 厦门大学（厦门市思明区思明南路422号）',
+    restaurants: '202特色排档（厦门市思明区环岛南路）, 临家闽南菜（厦门市思明区曾厝垵）, 堂宴（厦门市思明区中山路）',
+    foods: '沙茶面, 海蛎煎, 土笋冻, 姜母鸭, 花生汤',
+    accommodation: '鹭海湾海景酒店（厦门市海沧区嵩屿码头）, 思明区（厦门市思明区中山路周边）, 鼓浪屿（厦门市思明区鼓浪屿民宿）',
+    months: '3月-5月、10月-12月'
+  },
+  {
+    province: '海南', city: '三亚', cityEn: 'Sanya',
+    distance: '约1000公里（约11小时）',
+    attractions: '亚龙湾（三亚市吉阳区亚龙湾国家旅游度假区）, 天涯海角（三亚市天涯区天涯镇）, 蜈支洲岛（三亚市海棠区蜈支洲岛）, 鹿回头（三亚市吉阳区鹿回头路）',
+    restaurants: '林姐香味海鲜（三亚市天涯区新民街139号）, 阿浪海鲜（三亚市吉阳区亚龙湾）, 嗲嗲的椰子鸡（三亚市天涯区兰海路）',
+    foods: '文昌鸡, 椰子鸡, 海鲜大餐, 清补凉, 芒果',
+    accommodation: '亚龙湾（三亚市吉阳区亚龙湾·沙滩最优）, 海棠湾（三亚市海棠区·高端度假酒店群）',
+    months: '11月-次年4月（冬季避寒）'
+  },
+  {
+    province: '香港', city: '香港', cityEn: 'Hong Kong',
+    distance: '约50公里（约1小时·经深圳湾口岸）',
+    attractions: '维多利亚港（香港九龙半岛与香港岛之间）, 太平山顶（香港中环太平山顶）, 迪士尼乐园（香港大屿山竹篙湾）, 海洋公园（香港港岛黄竹坑道）',
+    restaurants: '添好运（香港深水埗福荣街9号）, 镛记酒家（香港中环威灵顿街32号）, 九记牛腩（香港中环歌赋街21号）, 兰芳园（香港尖沙咀弥敦道）',
+    foods: '叉烧, 云吞面, 蛋挞, 丝袜奶茶, 烧腊',
+    accommodation: '尖沙咀（香港九龙尖沙咀·维港景观）, 中环（香港中环·高端酒店）, 铜锣湾（香港港岛铜锣湾·购物便利）, 旺角（香港九龙旺角·平价选择）',
+    months: '10月-次年2月（凉爽干燥）'
+  }
+];
+
+// ===== State =====
+let cities = [];
+
+// ===== Init =====
+async function init() {
+  try {
+    const data = await supabaseFetch();
+    if (data.length === 0) {
+      const now = new Date().toISOString();
+      for (const item of DEFAULT_DATA) {
+        await supabaseInsert({ ...toSnakeCase(item), created_at: now, updated_at: now });
+      }
+      const seeded = await supabaseFetch();
+      cities = seeded.map(toCamelCase);
+    } else {
+      cities = data.map(toCamelCase);
+    }
+  } catch (e) {
+    console.error('Supabase load failed:', e);
+    showToast('⚠ 加载失败，请检查网络连接');
+    cities = [];
+  }
+  updateFilterDropdowns();
+  render();
+}
+
+function deepClone(o) { return JSON.parse(JSON.stringify(o)); }
+
+// ===== Parse text into items with addresses =====
+// "老张饭店（嵩屿南路）, 鼓浪屿" -> [{name, addr}, {name, addr}]
+function parseItems(text) {
+  if (!text) return [];
+  return text.split(/[,，、]/).map(s => s.trim()).filter(Boolean).map(s => {
+    const m = s.match(/^(.+?)[（(](.+?)[）)]$/);
+    return m ? { name: m[1].trim(), addr: m[2].trim() } : { name: s, addr: '' };
+  });
+}
+
+// ===== Filters =====
+let filterProvince = '';
+let filterCity = '';
+
+function getFiltered() {
+  return cities.map((c, i) => ({ ...c, _idx: i })).filter(c => {
+    if (filterProvince && c.province !== filterProvince) return false;
+    if (filterCity && c.city !== filterCity) return false;
+    return true;
+  });
+}
+
+function updateFilterDropdowns() {
+  const fp = document.getElementById('filterProvince');
+  const fc = document.getElementById('filterCity');
+
+  // Build province options from actual data
+  const provinces = [...new Set(cities.map(c => c.province || '其他'))];
+  provinces.sort((a, b) => {
+    if (a === '广东') return -1; if (b === '广东') return 1;
+    return a.localeCompare(b, 'zh');
+  });
+  fp.innerHTML = '<option value="">全部省份</option>' +
+    provinces.map(p => `<option value="${esc(p)}"${filterProvince === p ? ' selected' : ''}>${esc(p)}</option>`).join('');
+
+  // Build city options based on selected province
+  const cityPool = filterProvince
+    ? cities.filter(c => (c.province || '其他') === filterProvince)
+    : cities;
+  const cityNames = [...new Set(cityPool.map(c => c.city))];
+  cityNames.sort((a, b) => a.localeCompare(b, 'zh'));
+  fc.innerHTML = '<option value="">全部城市</option>' +
+    cityNames.map(c => `<option value="${esc(c)}"${filterCity === c ? ' selected' : ''}>${esc(c)}</option>`).join('');
+}
+
+function onFilterChange() {
+  const newProvince = document.getElementById('filterProvince').value;
+  if (newProvince !== filterProvince) {
+    document.getElementById('filterCity').value = '';
+  }
+  filterProvince = newProvince;
+  filterCity = document.getElementById('filterCity').value;
+  if (!filterProvince) filterCity = '';
+  updateFilterDropdowns();
+  render();
+}
+
+function resetFilter() {
+  filterProvince = '';
+  filterCity = '';
+  updateFilterDropdowns();
+  render();
+}
+
+// ===== Render =====
+function render() {
+  const grid = document.getElementById('grid');
+  const count = document.getElementById('cityCount');
+
+  if (cities.length === 0) {
+    grid.innerHTML = `
+      <div class="empty-state">
+        <div class="icon">🗺</div>
+        <h3>还没有城市记录</h3>
+        <p style="color:#b8a99a;">点击右上角「添加城市」开始你的旅行图鉴</p>
+      </div>`;
+    count.textContent = '共 0 座城市';
+    return;
+  }
+
+  const filtered = getFiltered();
+
+  if (filtered.length === 0) {
+    grid.innerHTML = `
+      <div class="empty-state">
+        <div class="icon">🔍</div>
+        <h3>没有匹配的城市</h3>
+        <p style="color:#b8a99a;"><a href="#" onclick="resetFilter();return false;" style="color:#c8a97e;">清除筛选</a> 查看全部</p>
+      </div>`;
+    count.textContent = `共 ${cities.length} 座城市（筛选中 0 条）`;
+    return;
+  }
+
+  const showingAll = !filterProvince && !filterCity;
+  count.textContent = showingAll
+    ? `共 ${cities.length} 座城市`
+    : `共 ${cities.length} 座城市（筛选 ${filtered.length} 条）`;
+
+  // Group filtered results by province
+  const groups = {};
+  filtered.forEach(item => {
+    const p = item.province || '其他';
+    if (!groups[p]) groups[p] = [];
+    groups[p].push(item._idx);
+  });
+
+  const provinceOrder = Object.keys(groups).sort((a, b) => {
+    if (a === '广东') return -1; if (b === '广东') return 1;
+    return a.localeCompare(b, 'zh');
+  });
+
+  const provinceIcons = {
+    '广东': '🌴', '湖南': '🏯', '四川': '🐼', '福建': '🌊',
+    '海南': '🏖', '香港': '🌃', '澳门': '🎰', '广西': '🌿',
+    '云南': '🌸', '江西': '⛰', '浙江': '🌊', '江苏': '🏛',
+    '上海': '🏙', '北京': '🏛', '海外': '✈', '台湾': '🏮',
+    '贵州': '⛰', '湖北': '🏗', '安徽': '🏔', '山东': '⛵',
+    '河南': '🏛', '陕西': '🏺', '其他': '📍'
+  };
+
+  let html = '';
+  provinceOrder.forEach(province => {
+    const icon = provinceIcons[province] || '📍';
+    html += `<div class="province-header">
+      <div class="icon">${icon}</div>
+      <div class="name">${esc(province)}</div>
+      <div class="count">${groups[province].length} 座城市</div>
+    </div>`;
+    html += groups[province].map(i => renderCard(i)).join('');
+  });
+  grid.innerHTML = html;
+}
+
+function renderCard(i) {
+  const c = cities[i];
+  return `
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div class="name">${esc(c.city)}</div>
+          ${c.cityEn ? `<div class="name-en">${esc(c.cityEn)}</div>` : ''}
+        </div>
+        <div class="card-actions">
+          <button class="btn-icon" onclick="openEditModal(${i})" title="编辑">✎</button>
+          <button class="btn-icon danger" onclick="deleteCity(${i})" title="删除">✕</button>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="info-block distance">
+          <div class="label">🚗 <span class="route">深圳·坂田 → ${esc(c.city)}市政府</span></div>
+          <div class="value">${esc(c.distance || '未记录')}</div>
+        </div>
+        <div class="info-grid">
+          <div class="info-cell">
+            <div class="label">🎯 景点</div>
+            ${renderPlaces(c.attractions)}
+          </div>
+          <div class="info-cell">
+            <div class="label">🍽 餐饮</div>
+            ${renderPlaces(c.restaurants)}
+          </div>
+          <div class="info-cell">
+            <div class="label">🌮 美食</div>
+            ${renderTags(c.foods)}
+          </div>
+          <div class="info-cell">
+            <div class="label">🏨 住宿</div>
+            ${renderPlaces(c.accommodation)}
+          </div>
+          <div class="info-cell full">
+            <div class="label">📅 最佳月份</div>
+            <div class="text-value">${esc(c.months || '未记录')}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderPlaces(text) {
+  const items = parseItems(text);
+  if (items.length === 0) return '<span style="color:#b8a99a;font-size:13px;">未记录</span>';
+  return '<div class="place-list">' + items.map(p =>
+    p.addr
+      ? `<div class="place-entry"><div class="p-name">${esc(p.name)}</div><div class="p-addr">${esc(p.addr)}</div></div>`
+      : `<div class="place-entry no-addr"><div class="p-name">${esc(p.name)}</div></div>`
+  ).join('') + '</div>';
+}
+
+function renderTags(text) {
+  if (!text) return '<span style="color:#b8a99a;font-size:13px;">未记录</span>';
+  const items = text.split(/[,，、]/).map(s => s.trim()).filter(Boolean);
+  return '<div class="tag-list">' + items.map(s => `<span class="tag">${esc(s)}</span>`).join('') + '</div>';
+}
+
+function esc(s) {
+  if (typeof s !== 'string') return '';
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+// ===== Province-City Data =====
+const PROVINCE_CITIES = {
+  '广东': ['广州','深圳','珠海','汕头','佛山','韶关','湛江','肇庆','江门','茂名','惠州','梅州','汕尾','河源','阳江','清远','东莞','中山','潮州','揭阳','云浮'],
+  '广西': ['南宁','柳州','桂林','梧州','北海','防城港','钦州','贵港','玉林','百色','贺州','河池','来宾','崇左'],
+  '海南': ['海口','三亚','三沙','儋州'],
+  '福建': ['福州','厦门','莆田','三明','泉州','漳州','南平','龙岩','宁德'],
+  '江西': ['南昌','景德镇','萍乡','九江','新余','鹰潭','赣州','吉安','宜春','抚州','上饶'],
+  '湖南': ['长沙','株洲','湘潭','衡阳','邵阳','岳阳','常德','张家界','益阳','郴州','永州','怀化','娄底','湘西'],
+  '湖北': ['武汉','黄石','十堰','宜昌','襄阳','鄂州','荆门','孝感','荆州','黄冈','咸宁','随州','恩施'],
+  '四川': ['成都','自贡','攀枝花','泸州','德阳','绵阳','广元','遂宁','内江','乐山','南充','眉山','宜宾','广安','达州','雅安','巴中','资阳'],
+  '贵州': ['贵阳','六盘水','遵义','安顺','毕节','铜仁'],
+  '云南': ['昆明','曲靖','玉溪','保山','昭通','丽江','普洱','临沧','楚雄','红河','文山','西双版纳','大理','德宏','怒江','迪庆'],
+  '浙江': ['杭州','宁波','温州','嘉兴','湖州','绍兴','金华','衢州','舟山','台州','丽水'],
+  '江苏': ['南京','无锡','徐州','常州','苏州','南通','连云港','淮安','盐城','扬州','镇江','泰州','宿迁'],
+  '上海': ['上海'],
+  '北京': ['北京'],
+  '天津': ['天津'],
+  '重庆': ['重庆'],
+  '安徽': ['合肥','芜湖','蚌埠','淮南','马鞍山','淮北','铜陵','安庆','黄山','滁州','阜阳','宿州','六安','亳州','池州','宣城'],
+  '河南': ['郑州','开封','洛阳','平顶山','安阳','鹤壁','新乡','焦作','濮阳','许昌','漯河','三门峡','南阳','商丘','信阳','周口','驻马店','济源'],
+  '河北': ['石家庄','唐山','秦皇岛','邯郸','邢台','保定','张家口','承德','沧州','廊坊','衡水'],
+  '山东': ['济南','青岛','淄博','枣庄','东营','烟台','潍坊','济宁','泰安','威海','日照','临沂','德州','聊城','滨州','菏泽'],
+  '陕西': ['西安','铜川','宝鸡','咸阳','渭南','延安','汉中','榆林','安康','商洛'],
+  '甘肃': ['兰州','嘉峪关','金昌','白银','天水','武威','张掖','平凉','酒泉','庆阳','定西','陇南'],
+  '辽宁': ['沈阳','大连','鞍山','抚顺','本溪','丹东','锦州','营口','阜新','辽阳','盘锦','铁岭','朝阳','葫芦岛'],
+  '吉林': ['长春','吉林','四平','辽源','通化','白山','松原','白城','延边'],
+  '黑龙江': ['哈尔滨','齐齐哈尔','鸡西','鹤岗','双鸭山','大庆','伊春','佳木斯','七台河','牡丹江','黑河','绥化','大兴安岭'],
+  '山西': ['太原','大同','阳泉','长治','晋城','朔州','晋中','运城','忻州','临汾','吕梁'],
+  '内蒙古': ['呼和浩特','包头','乌海','赤峰','通辽','鄂尔多斯','呼伦贝尔','巴彦淖尔','乌兰察布','兴安','锡林郭勒','阿拉善'],
+  '新疆': ['乌鲁木齐','克拉玛依','吐鲁番','哈密','阿克苏','喀什','和田','昌吉','博尔塔拉','巴音郭楞','克孜勒苏柯尔克孜','伊犁','塔城','阿勒泰'],
+  '西藏': ['拉萨','日喀则','昌都','林芝','山南','那曲','阿里'],
+  '青海': ['西宁','海东','海北','黄南','海南','果洛','玉树'],
+  '宁夏': ['银川','石嘴山','吴忠','固原','中卫'],
+  '香港': ['香港'],
+  '澳门': ['澳门'],
+  '台湾': ['台北','高雄','台中','台南','基隆','新竹','嘉义','桃园','新北','宜兰','花莲','台东','澎湖'],
+  '海外': ['其他']
+};
+
+// Auto-build CITY_PROVINCE lookup
+const CITY_PROVINCE = {};
+for (const [p, cities] of Object.entries(PROVINCE_CITIES)) {
+  for (const c of cities) { CITY_PROVINCE[c] = p; }
+}
+
+function validateProvinceCity(province, city) {
+  if (!province || !city) return true;
+  if (province === '海外') return true;
+  const expected = CITY_PROVINCE[city];
+  if (expected && expected !== province) return false;
+  return true;
+}
+
+function populateCities() {
+  const province = document.getElementById('fProvince').value;
+  const sel = document.getElementById('fCity');
+  const customGroup = document.getElementById('fCityCustomGroup');
+  const customInput = document.getElementById('fCityCustom');
+
+  sel.innerHTML = '<option value="">选择城市</option>';
+  customGroup.style.display = 'none';
+  customInput.value = '';
+
+  if (!province) { sel.disabled = true; return; }
+  sel.disabled = false;
+
+  const cities = PROVINCE_CITIES[province] || [];
+  cities.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c; opt.textContent = c;
+    sel.appendChild(opt);
+  });
+
+  // If province is 海外, auto-select 其他 + show custom input
+  if (province === '海外') {
+    sel.value = '其他';
+    customGroup.style.display = 'block';
+  }
+  // Notify city change handler
+  if (window.citySelectChanged) citySelectChanged();
+}
+
+// City select change handler (also triggered by inline onchange)
+window.citySelectChanged = function() {
+  const sel = document.getElementById('fCity');
+  const customGroup = document.getElementById('fCityCustomGroup');
+  customGroup.style.display = sel.value === '其他' ? 'block' : 'none';
+};
+
+// ===== Smart Paste =====
+function toggleSmartPaste() {
+  const body = document.getElementById('smartPasteBody');
+  const header = document.querySelector('.smart-paste-header');
+  body.classList.toggle('open');
+  header.classList.toggle('open');
+}
+
+function clearSmartInput() {
+  document.getElementById('smartInput').value = '';
+}
+
+function parseSmartInput() {
+  const text = document.getElementById('smartInput').value.trim();
+  if (!text) { showToast('请粘贴旅行笔记'); return; }
+
+  const result = {};
+  const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+
+  for (const line of lines) {
+    // Match "key：" (with optional value after colon)
+    const m = line.match(/^(.+?)[：:]\s*(.*)$/);
+    if (m) {
+      let key = m[1].replace(/[*#\-]/g, '').trim();
+      let val = m[2].trim();
+
+      if (val) {
+        // key: value format
+        val = val.replace(/[\/、]/g, ', ');
+        if (key.includes('省份') || key.includes('地区')) {
+          result.province = val;
+        } else if (key.includes('距离')) {
+          result.distance = val;
+        } else if (key.includes('景点')) {
+          result.attractions = val;
+        } else if (key.includes('餐饮')) {
+          result.restaurants = val;
+        } else if (key.includes('美食')) {
+          result.foods = val;
+        } else if (key.includes('住宿')) {
+          result.accommodation = val;
+        } else if (key.includes('月份') || key.includes('季节')) {
+          result.months = val;
+        } else if (!result.province) {
+          result.province = key;
+          if (!result.city) result.city = val;
+        } else if (!result.city) {
+          result.city = key;
+        }
+      } else {
+        // "key：" with no value → header line (province or city)
+        if (!result.province) {
+          result.province = key;
+        } else if (!result.city) {
+          result.city = key;
+        }
+      }
+    } else {
+      // Line without any colon → treat as city name (backward compat)
+      const clean = line.replace(/[*#\-：:]/g, '').trim();
+      if (clean && !result.city) result.city = clean;
+    }
+  }
+
+  // Validate province-city match
+  if (result.province && result.city) {
+    if (!validateProvinceCity(result.province, result.city)) {
+      showToast(`❌ 省份与城市不匹配：「${result.province}」不属于「${result.city}」，请检查`);
+      return;
+    }
+  }
+
+  if (result.province) {
+    document.getElementById('fProvince').value = result.province;
+    populateCities();
+  }
+  if (result.city) {
+    const citySel = document.getElementById('fCity');
+    const cityOpts = [...citySel.options].map(o => o.value);
+    if (cityOpts.includes(result.city)) {
+      citySel.value = result.city;
+    } else {
+      citySel.value = '其他';
+      document.getElementById('fCityCustomGroup').style.display = 'block';
+      document.getElementById('fCityCustom').value = result.city;
+    }
+  }
+  if (result.distance) document.getElementById('fDistance').value = result.distance;
+  if (result.attractions) document.getElementById('fAttractions').value = result.attractions;
+  if (result.restaurants) document.getElementById('fRestaurants').value = result.restaurants;
+  if (result.foods) document.getElementById('fFoods').value = result.foods;
+  if (result.accommodation) document.getElementById('fAccommodation').value = result.accommodation;
+  if (result.months) document.getElementById('fMonths').value = result.months;
+
+  const filled = Object.keys(result).length;
+  if (filled > 0) {
+    showToast(`已解析 ${filled} 项，请确认后保存`);
+    // close smart paste after parsing
+    document.getElementById('smartPasteBody').classList.remove('open');
+    document.querySelector('.smart-paste-header').classList.remove('open');
+  } else {
+    showToast('未能解析内容，请检查格式');
+  }
+}
+
+// ===== Modal =====
+function openAddModal() {
+  document.getElementById('editIndex').value = '';
+  document.getElementById('modalTitle').textContent = '添加城市';
+  clearForm();
+  document.getElementById('modal').classList.add('active');
+  document.getElementById('smartPasteBody').classList.remove('open');
+  document.querySelector('.smart-paste-header').classList.remove('open');
+}
+
+function openEditModal(i) {
+  const c = cities[i];
+  document.getElementById('editIndex').value = i;
+  document.getElementById('modalTitle').textContent = '编辑城市';
+
+  // Set province → populate cities → set city
+  document.getElementById('fProvince').value = c.province || '';
+  populateCities();
+  const citySel = document.getElementById('fCity');
+  const cityOpts = [...citySel.options].map(o => o.value);
+  if (cityOpts.includes(c.city)) {
+    citySel.value = c.city;
+  } else {
+    citySel.value = '其他';
+    document.getElementById('fCityCustomGroup').style.display = 'block';
+    document.getElementById('fCityCustom').value = c.city;
+  }
+  citySelectChanged();
+
+  document.getElementById('fCityEn').value = c.cityEn || '';
+  document.getElementById('fDistance').value = c.distance || '';
+  document.getElementById('fAttractions').value = c.attractions || '';
+  document.getElementById('fRestaurants').value = c.restaurants || '';
+  document.getElementById('fFoods').value = c.foods || '';
+  document.getElementById('fAccommodation').value = c.accommodation || '';
+  document.getElementById('fMonths').value = c.months || '';
+  document.getElementById('modal').classList.add('active');
+  document.getElementById('smartPasteBody').classList.remove('open');
+  document.querySelector('.smart-paste-header').classList.remove('open');
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('active');
+}
+
+function clearForm() {
+  ['fProvince','fCity','fCityEn','fCityCustom','fDistance','fAttractions','fRestaurants','fFoods','fAccommodation','fMonths']
+    .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  document.getElementById('fCity').disabled = true;
+  document.getElementById('fCityCustomGroup').style.display = 'none';
+}
+
+async function saveCity() {
+  const province = document.getElementById('fProvince').value.trim();
+  let city = document.getElementById('fCity').value.trim();
+  if (city === '其他') {
+    city = document.getElementById('fCityCustom').value.trim();
+  }
+  if (!province) { showToast('请选择省份'); return; }
+  if (!city) { showToast('请填写城市名称'); return; }
+  if (!validateProvinceCity(province, city)) {
+    showToast(`❌ 省份与城市不匹配：「${province}」不属于「${city}」，请检查`);
+    return;
+  }
+
+  const data = {
+    province,
+    city,
+    cityEn: document.getElementById('fCityEn').value.trim(),
+    distance: document.getElementById('fDistance').value.trim(),
+    attractions: document.getElementById('fAttractions').value.trim(),
+    restaurants: document.getElementById('fRestaurants').value.trim(),
+    foods: document.getElementById('fFoods').value.trim(),
+    accommodation: document.getElementById('fAccommodation').value.trim(),
+    months: document.getElementById('fMonths').value.trim()
+  };
+
+  const idx = document.getElementById('editIndex').value;
+  const now = new Date().toISOString();
+
+  try {
+    if (idx === '') {
+      const result = await supabaseInsert({ ...toSnakeCase(data), created_at: now, updated_at: now });
+      cities.push(toCamelCase(result[0]));
+      showToast(`✔ 已添加 ${province}·${city}`);
+    } else {
+      const cityId = cities[parseInt(idx)].id;
+      await supabaseUpdate(cityId, { ...toSnakeCase(data), updated_at: now });
+      cities[parseInt(idx)] = { ...cities[parseInt(idx)], ...data };
+      showToast(`✔ 已更新 ${province}·${city}`);
+    }
+  } catch (e) {
+    console.error('Save failed:', e);
+    showToast('⚠ 保存失败，请检查网络');
+    return;
+  }
+
+  updateFilterDropdowns();
+  render();
+  closeModal();
+}
+
+function saveData() {} // no-op — data saved directly to Supabase
+
+// ===== Delete =====
+async function deleteCity(i) {
+  const name = cities[i].city;
+  if (!confirm(`确定删除「${name}」的记录吗？`)) return;
+  try {
+    await supabaseDelete(cities[i].id);
+    cities.splice(i, 1);
+    updateFilterDropdowns();
+    render();
+    showToast(`已删除「${name}」`);
+  } catch (e) {
+    console.error('Delete failed:', e);
+    showToast('⚠ 删除失败，请检查网络');
+  }
+}
+
+// ===== Export =====
+function exportData() {
+  const text = cities.map(c => {
+    const line = (field) => field || '未记录';
+    let out = `【${c.province ? '[' + c.province + '] ' : ''}${c.city}${c.cityEn ? ' · ' + c.cityEn : ''}】\n`;
+    out += `距离 · 深圳→${c.city}市政府：${line(c.distance)}\n`;
+    out += `景点：${line(c.attractions)}\n`;
+    out += `餐饮：${line(c.restaurants)}\n`;
+    out += `美食：${line(c.foods)}\n`;
+    out += `住宿：${line(c.accommodation)}\n`;
+    out += `最佳月份：${line(c.months)}\n`;
+    return out;
+  }).join('\n───────\n\n');
+
+  const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `旅行手记_${new Date().toISOString().slice(0,10)}.txt`;
+  a.click();
+  URL.revokeObjectURL(blob);
+  showToast('✔ 导出成功');
+}
+
+// ===== Toast =====
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(el._timer);
+  el._timer = setTimeout(() => el.classList.remove('show'), 2200);
+}
+
+// ===== Events =====
+document.getElementById('modal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeModal();
+});
+
+// ===== Start =====
+populateProvinces();
+init().catch(e => console.error(e));
+</script>
+</body>
+</html>
