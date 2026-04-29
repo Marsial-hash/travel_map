@@ -725,13 +725,19 @@ async function init() {
           return;
         }
       }
-      // No old data either, seed defaults
-      const now = new Date().toISOString();
-      for (const item of DEFAULT_DATA) {
-        await supabaseInsert({ ...toSnakeCase(item), created_at: now, updated_at: now });
+      // No old data — seed defaults only on very first launch
+      const seededFlag = localStorage.getItem('travel_seeded');
+      if (!seededFlag) {
+        const now = new Date().toISOString();
+        for (const item of DEFAULT_DATA) {
+          await supabaseInsert({ ...toSnakeCase(item), created_at: now, updated_at: now });
+        }
+        localStorage.setItem('travel_seeded', '1');
+        const seeded = await supabaseFetch();
+        cities = seeded.map(toCamelCase);
+      } else {
+        cities = [];
       }
-      const seeded = await supabaseFetch();
-      cities = seeded.map(toCamelCase);
     } else {
       cities = data.map(toCamelCase);
     }
