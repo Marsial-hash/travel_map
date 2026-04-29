@@ -701,9 +701,31 @@ let cities = [];
 
 // ===== Init =====
 async function init() {
+  // Try Supabase first
   try {
     const data = await supabaseFetch();
     if (data.length === 0) {
+      // Try fallback: migrate old localStorage data
+      const saved = localStorage.getItem('travel_cities');
+      if (saved) {
+        try {
+          const oldData = JSON.parse(saved);
+          const now = new Date().toISOString();
+          for (const item of oldData) {
+            await supabaseInsert({ ...toSnakeCase(item), created_at: now, updated_at: now });
+          }
+        } catch (e) { /* ignore migration errors */ }
+        // Re-fetch from Supabase
+        const migrated = await supabaseFetch();
+        if (migrated.length > 0) {
+          cities = migrated.map(toCamelCase);
+          localStorage.removeItem('travel_cities');
+          updateFilterDropdowns();
+          render();
+          return;
+        }
+      }
+      // No old data either, seed defaults
       const now = new Date().toISOString();
       for (const item of DEFAULT_DATA) {
         await supabaseInsert({ ...toSnakeCase(item), created_at: now, updated_at: now });
@@ -714,9 +736,22 @@ async function init() {
       cities = data.map(toCamelCase);
     }
   } catch (e) {
-    console.error('Supabase load failed:', e);
-    showToast('⚠ 加载失败，请检查网络连接');
-    cities = [];
+    console.error('Supabase load failed, trying localStorage fallback:', e);
+    // Fallback: load from old localStorage
+    const saved = localStorage.getItem('travel_cities');
+    if (saved) {
+      try {
+        cities = JSON.parse(saved).map(c => ({
+          id: null, province: c.province || '', city: c.city || '',
+          cityEn: c.cityEn || '', distance: c.distance || '',
+          attractions: c.attractions || '', restaurants: c.restaurants || '',
+          foods: c.foods || '', accommodation: c.accommodation || '', months: c.months || ''
+        }));
+        showToast('⚠ 云连接失败，已加载本地缓存数据');
+      } catch(e2) { cities = deepClone(DEFAULT_DATA); }
+    } else {
+      cities = deepClone(DEFAULT_DATA);
+    }
   }
   updateFilterDropdowns();
   render();
@@ -1207,14 +1242,24 @@ async function saveCity() {
       showToast(`✔ 已添加 ${province}·${city}`);
     } else {
       const cityId = cities[parseInt(idx)].id;
-      await supabaseUpdate(cityId, { ...toSnakeCase(data), updated_at: now });
+      if (cityId) {
+        await supabaseUpdate(cityId, { ...toSnakeCase(data), updated_at: now });
+      } else {
+        throw new Error('no supabase id (offline mode)');
+      }
       cities[parseInt(idx)] = { ...cities[parseInt(idx)], ...data };
       showToast(`✔ 已更新 ${province}·${city}`);
     }
   } catch (e) {
-    console.error('Save failed:', e);
-    showToast('⚠ 保存失败，请检查网络');
-    return;
+    // Fallback: save to localStorage
+    console.warn('Supabase save failed, saving locally:', e);
+    if (idx === '') {
+      cities.push(data);
+    } else {
+      cities[parseInt(idx)] = { ...cities[parseInt(idx)], ...data };
+    }
+    saveData();
+    showToast(`✔ 已保存到本地（云同步暂不可用）`);
   }
 
   updateFilterDropdowns();
@@ -1222,21 +1267,34 @@ async function saveCity() {
   closeModal();
 }
 
-function saveData() {} // no-op — data saved directly to Supabase
+function saveData() {
+  // Fallback: save to localStorage when Supabase is unavailable
+  localStorage.setItem('travel_cities', JSON.stringify(cities));
+}
 
 // ===== Delete =====
 async function deleteCity(i) {
   const name = cities[i].city;
   if (!confirm(`确定删除「${name}」的记录吗？`)) return;
   try {
-    await supabaseDelete(cities[i].id);
+    const cityId = cities[i].id;
+    if (cityId) {
+      await supabaseDelete(cityId);
+    } else {
+      throw new Error('no supabase id (offline mode)');
+    }
     cities.splice(i, 1);
     updateFilterDropdowns();
     render();
     showToast(`已删除「${name}」`);
   } catch (e) {
-    console.error('Delete failed:', e);
-    showToast('⚠ 删除失败，请检查网络');
+    // Fallback: delete from localStorage
+    console.warn('Supabase delete failed, deleting locally:', e);
+    cities.splice(i, 1);
+    saveData();
+    updateFilterDropdowns();
+    render();
+    showToast(`已删除「${name}」（本地）`);
   }
 }
 
