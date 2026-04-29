@@ -725,19 +725,8 @@ async function init() {
           return;
         }
       }
-      // No old data — seed defaults only on very first launch
-      const seededFlag = localStorage.getItem('travel_seeded');
-      if (!seededFlag) {
-        const now = new Date().toISOString();
-        for (const item of DEFAULT_DATA) {
-          await supabaseInsert({ ...toSnakeCase(item), created_at: now, updated_at: now });
-        }
-        localStorage.setItem('travel_seeded', '1');
-        const seeded = await supabaseFetch();
-        cities = seeded.map(toCamelCase);
-      } else {
-        cities = [];
-      }
+      // No old data — empty state, no auto-fill
+      cities = [];
     } else {
       cities = data.map(toCamelCase);
     }
@@ -754,9 +743,9 @@ async function init() {
           foods: c.foods || '', accommodation: c.accommodation || '', months: c.months || ''
         }));
         showToast('⚠ 云连接失败，已加载本地缓存数据');
-      } catch(e2) { cities = deepClone(DEFAULT_DATA); }
+      } catch(e2) { cities = []; }
     } else {
-      cities = deepClone(DEFAULT_DATA);
+      cities = [];
     }
   }
   updateFilterDropdowns();
