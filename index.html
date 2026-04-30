@@ -209,6 +209,9 @@
     display: inline-block; width: auto;
   }
   .place-entry.no-addr .p-name { font-size: 13px; font-weight: 500; }
+  a.place-entry.no-addr { cursor: pointer; text-decoration: none; color: inherit; display: inline-block; }
+  a.place-entry.no-addr:hover { background: #e4dcd2; border-left-color: #c8a97e; }
+  a.place-entry.no-addr .p-name::after { content: " ↗"; font-size: 10px; color: #c8a97e; }
 
   .tag-list { display: flex; flex-wrap: wrap; gap: 4px; }
   .tag {
@@ -914,11 +917,11 @@ function renderCard(i) {
         <div class="info-grid">
           <div class="info-cell">
             <div class="label">🎯 景点</div>
-            ${renderPlaces(c.attractions)}
+            ${renderPlaces(c.attractions, c.city)}
           </div>
           <div class="info-cell">
             <div class="label">🍽 餐饮</div>
-            ${renderPlaces(c.restaurants)}
+            ${renderPlaces(c.restaurants, c.city)}
           </div>
           <div class="info-cell">
             <div class="label">🌮 美食</div>
@@ -926,7 +929,7 @@ function renderCard(i) {
           </div>
           <div class="info-cell">
             <div class="label">🏨 住宿</div>
-            ${renderPlaces(c.accommodation)}
+            ${renderPlaces(c.accommodation, c.city)}
           </div>
           <div class="info-cell full">
             <div class="label">📅 最佳月份</div>
@@ -938,13 +941,13 @@ function renderCard(i) {
   `;
 }
 
-function renderPlaces(text) {
+function renderPlaces(text, city) {
   const items = parseItems(text);
   if (items.length === 0) return '<span style="color:#b8a99a;font-size:13px;">未记录</span>';
   return '<div class="place-list">' + items.map(p =>
     p.addr
       ? `<a class="place-entry" href="https://ditu.amap.com/search?query=${encodeURIComponent(p.addr + ' ' + p.name)}" target="_blank" rel="noopener" title="在高德地图中查看位置"><div class="p-name">${esc(p.name)}</div><div class="p-addr">${esc(p.addr)}</div></a>`
-      : `<div class="place-entry no-addr"><div class="p-name">${esc(p.name)}</div></div>`
+      : `<a class="place-entry" href="https://ditu.amap.com/search?query=${encodeURIComponent(city + ' ' + p.name)}" target="_blank" rel="noopener" title="在高德地图中搜索"><div class="p-name">${esc(p.name)}</div></a>`
   ).join('') + '</div>';
 }
 
