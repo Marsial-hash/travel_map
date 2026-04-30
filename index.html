@@ -194,6 +194,9 @@
     width: 100%; transition: background 0.15s;
   }
   .place-entry:hover { background: #faf8f6; }
+  a.place-entry { text-decoration: none; color: inherit; display: block; cursor: pointer; }
+  a.place-entry:hover { background: #e4dcd2; border-left-color: #c8a97e; }
+  a.place-entry .p-addr::after { content: ' ↗'; font-size: 10px; color: #c8a97e; }
   .place-entry .p-name { font-size: 13px; font-weight: 600; color: #1a1614; }
   .place-entry .p-addr {
     font-size: 11px; color: #6b5d4f; margin-top: 2px;
@@ -940,7 +943,7 @@ function renderPlaces(text) {
   if (items.length === 0) return '<span style="color:#b8a99a;font-size:13px;">未记录</span>';
   return '<div class="place-list">' + items.map(p =>
     p.addr
-      ? `<div class="place-entry"><div class="p-name">${esc(p.name)}</div><div class="p-addr">${esc(p.addr)}</div></div>`
+      ? `<a class="place-entry" href="https://ditu.amap.com/search?query=${encodeURIComponent(p.addr + ' ' + p.name)}" target="_blank" rel="noopener" title="在高德地图中查看位置"><div class="p-name">${esc(p.name)}</div><div class="p-addr">${esc(p.addr)}</div></a>`
       : `<div class="place-entry no-addr"><div class="p-name">${esc(p.name)}</div></div>`
   ).join('') + '</div>';
 }
