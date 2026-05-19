@@ -1,0 +1,1495 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Financial Interview — 面试全流程平台</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
+  <style>
+    :root {
+      --primary: #1a365d;
+      --primary-light: #2a4a7f;
+      --accent: #c9a84c;
+      --bg: #f5f7fa;
+      --card-bg: #ffffff;
+      --text: #1a202c;
+      --text-secondary: #4a5568;
+      --border: #e2e8f0;
+      --success: #38a169;
+      --warning: #d69e2e;
+      --danger: #e53e3e;
+      --shadow: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.06);
+      --radius: 12px;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    /* ===== Topbar ===== */
+    .topbar {
+      background: var(--primary);
+      color: #fff;
+      padding: 0 24px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 8px rgba(0,0,0,.15);
+    }
+    .topbar .logo { font-size: 18px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+    .topbar .logo span { color: var(--accent); }
+    .topbar .nav-links { display: flex; gap: 4px; }
+    .topbar .nav-links a {
+      color: rgba(255,255,255,.7);
+      text-decoration: none;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: .2s;
+      white-space: nowrap;
+    }
+    .topbar .nav-links a:hover,
+    .topbar .nav-links a.active { color: #fff; background: rgba(255,255,255,.12); }
+    .hamburger { display: none; flex-direction: column; gap: 4px; cursor: pointer; background: none; border: none; padding: 4px; }
+    .hamburger span { width: 22px; height: 2px; background: #fff; border-radius: 2px; display: block; }
+
+    .hero {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+      color: #fff;
+      padding: 60px 24px 50px;
+      text-align: center;
+    }
+    .hero h1 { font-size: clamp(26px, 4vw, 40px); font-weight: 700; margin-bottom: 12px; }
+    .hero p { font-size: 16px; opacity: .85; max-width: 520px; margin: 0 auto 28px; }
+    .hero .stats { display: flex; justify-content: center; gap: 40px; flex-wrap: wrap; }
+    .hero .stats .num { font-size: 28px; font-weight: 700; color: var(--accent); }
+    .hero .stats .label { font-size: 13px; opacity: .7; }
+
+    .section { display: none; }
+    .section.active { display: block; }
+
+    .container { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
+
+    .section-title {
+      font-size: 20px;
+      font-weight: 700;
+      margin: 36px 0 18px;
+      padding-left: 14px;
+      border-left: 4px solid var(--accent);
+    }
+
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; margin: 20px 0; }
+    .card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: var(--shadow);
+      cursor: pointer;
+      transition: .25s;
+      border: 1px solid var(--border);
+    }
+    .card:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,.1); border-color: var(--accent); }
+    .card .icon { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 22px; margin-bottom: 14px; }
+    .card h3 { font-size: 16px; margin-bottom: 6px; }
+    .card p { font-size: 13px; color: var(--text-secondary); line-height: 1.5; }
+
+    .btn {
+      padding: 8px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: .2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover { background: var(--primary-light); }
+    .btn-outline { background: transparent; border: 1.5px solid var(--primary); color: var(--primary); }
+    .btn-outline:hover { background: var(--primary); color: #fff; }
+    .btn-sm { padding: 5px 14px; font-size: 12px; }
+    .btn-success { background: var(--success); color: #fff; }
+    .btn-success:hover { opacity: .9; }
+
+    /* ===== 简历 ===== */
+    .resume-section { margin: 20px 0; }
+
+    .import-area {
+      background: var(--card-bg);
+      border: 2px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 32px;
+      text-align: center;
+      transition: .2s;
+      cursor: pointer;
+      margin-bottom: 20px;
+    }
+    .import-area:hover, .import-area.dragover { border-color: var(--accent); background: #fefcf5; }
+    .import-area .big-icon { font-size: 40px; margin-bottom: 8px; }
+    .import-area p { color: var(--text-secondary); font-size: 14px; }
+    .import-area .formats { font-size: 12px; color: #a0aec0; margin-top: 4px; }
+    .import-area input[type="file"] { display: none; }
+
+    .import-status {
+      display: none; padding: 10px 16px; border-radius: 8px; margin-bottom: 14px; font-size: 13px;
+    }
+    .import-status.show { display: flex; align-items: center; gap: 8px; }
+    .import-status.success { background: #e6f7ed; color: #22543d; }
+    .import-status.error { background: #fee2e2; color: #991b1b; }
+    .import-status.loading { background: #fef3e6; color: #92400e; }
+
+    .resume-preview {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      padding: 28px;
+      margin: 20px 0;
+      box-shadow: var(--shadow);
+    }
+    .resume-preview .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; flex-wrap: wrap; gap: 10px; }
+    .resume-preview .header h2 { font-size: 18px; }
+    .resume-form { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .resume-form .full { grid-column: 1 / -1; }
+    .resume-form label { font-size: 12px; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 4px; }
+    .resume-form input, .resume-form textarea, .resume-form select {
+      width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; font-family: inherit; background: #fafbfc; transition: .2s;
+    }
+    .resume-form input:focus, .resume-form textarea:focus, .resume-form select:focus {
+      outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(26,54,93,.12);
+    }
+    .resume-form textarea { resize: vertical; min-height: 60px; }
+
+    /* ===== 模拟面试 ===== */
+    .sim-box {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      padding: 24px;
+      margin: 20px 0;
+      box-shadow: var(--shadow);
+    }
+    .sim-types { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+    .sim-types button {
+      padding: 8px 18px; border: 1.5px solid var(--border); border-radius: 20px; background: #fff;
+      font-size: 13px; font-weight: 500; cursor: pointer; transition: .2s; color: var(--text-secondary);
+    }
+    .sim-types button:hover { border-color: var(--primary); color: var(--primary); background: rgba(26,54,93,.06); }
+    .sim-types button.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+    /* ===== 对话式模拟面试 ===== */
+    .sim-chat-msg { display: flex; gap: 10px; max-width: 85%; animation: msgIn .3s ease; }
+    .sim-chat-msg.interviewer { align-self: flex-start; }
+    .sim-chat-msg.user { align-self: flex-end; flex-direction: row-reverse; }
+    @keyframes msgIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .sim-chat-msg .avatar {
+      width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600;
+    }
+    .sim-chat-msg.interviewer .avatar { background: var(--primary); color: #fff; }
+    .sim-chat-msg.user .avatar { background: #e6f7ed; color: #276749; }
+    .sim-chat-msg .bubble {
+      padding: 10px 16px; border-radius: 12px; font-size: 14px; line-height: 1.6;
+    }
+    .sim-chat-msg.interviewer .bubble {
+      background: #fff; border: 1px solid var(--border); border-top-left-radius: 4px;
+    }
+    .sim-chat-msg.user .bubble {
+      background: var(--primary); color: #fff; border-top-right-radius: 4px;
+    }
+    .sim-chat-msg .bubble .meta { font-size: 11px; opacity: .7; margin-top: 4px; }
+    .sim-question {
+      background: #f8fafc; border-radius: 10px; padding: 20px; margin: 10px 0;
+      border-left: 4px solid var(--accent);
+    }
+    .sim-question .q-label { font-size: 12px; color: var(--text-secondary); margin-bottom: 6px; }
+    .sim-question .q-text { font-size: 15px; font-weight: 500; margin-bottom: 14px; }
+    .sim-question textarea {
+      width: 100%; min-height: 80px; border: 1px solid var(--border); border-radius: 8px;
+      padding: 12px; font-size: 14px; font-family: inherit; resize: vertical; background: #fff;
+    }
+    .sim-question textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(26,54,93,.12); }
+    .sim-actions { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+
+    /* ===== 面经库 ===== */
+    .expense-import-area {
+      background: var(--card-bg);
+      border: 2px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 40px 24px;
+      text-align: center;
+      transition: .2s;
+      cursor: pointer;
+      margin: 20px 0;
+    }
+    .expense-import-area:hover { border-color: var(--accent); background: #fefcf5; }
+    .expense-import-area .big-icon { font-size: 44px; margin-bottom: 8px; }
+    .expense-import-area p { font-size: 14px; color: var(--text-secondary); }
+    .expense-import-area .formats { font-size: 12px; color: #a0aec0; margin-top: 4px; }
+    .expense-import-area input[type="file"] { display: none; }
+
+    .expense-search-bar {
+      display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px;
+    }
+    .expense-search-bar input {
+      flex: 1; min-width: 200px; padding: 10px 14px;
+      border: 1px solid var(--border); border-radius: 8px; font-size: 14px;
+    }
+    .expense-search-bar input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(26,54,93,.12); }
+    .expense-search-bar .hint { font-size: 12px; color: #a0aec0; width: 100%; }
+
+    .expense-list { margin: 16px 0; display: flex; flex-direction: column; gap: 10px; }
+    .expense-item {
+      background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px;
+      padding: 18px 20px; transition: .2s; box-shadow: var(--shadow);
+    }
+    .expense-item .top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+    .expense-item .top .info { flex: 1; }
+    .expense-item .top .info h4 { font-size: 15px; margin-bottom: 4px; }
+    .expense-item .top .info .source { font-size: 12px; color: var(--text-secondary); }
+    .expense-item .tags { display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0; }
+    .expense-item .tags span {
+      font-size: 11px; padding: 2px 10px; border-radius: 20px;
+      background: #eef2f7; color: var(--text-secondary);
+    }
+    .expense-item .tags .tag-company { background: #e6f7ed; color: #276749; }
+    .expense-item .tags .tag-round { background: #fef3e6; color: #92400e; }
+    .expense-item .tags .tag-pos { background: #eef2ff; color: #434190; }
+    .expense-item .content-preview { font-size: 13px; color: var(--text-secondary); line-height: 1.6; margin-top: 6px; }
+    .expense-item .content-preview .highlight { background: #fef9c3; padding: 0 2px; }
+    .expense-empty { text-align: center; padding: 40px; color: var(--text-secondary); font-size: 14px; }
+    .filter-chip {
+      padding: 6px 16px; border: 1.5px solid var(--border); border-radius: 20px; background: #fff;
+      font-size: 12px; font-weight: 500; cursor: pointer; transition: .2s; color: var(--text-secondary);
+    }
+    .filter-chip:hover { border-color: var(--primary); color: var(--primary); }
+    .filter-chip.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .sub-filter-chip {
+      padding: 4px 12px; border: 1px solid var(--border); border-radius: 16px; background: #f8fafc;
+      font-size: 12px; cursor: pointer; transition: .15s; color: var(--text-secondary);
+    }
+    .sub-filter-chip:hover { border-color: var(--accent); color: var(--primary); background: #fefcf5; }
+    .sub-filter-chip.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+    /* ===== 日历（交互式看板）===== */
+    .kanban-toolbar {
+      display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px;
+    }
+    .kanban-toolbar button { min-width: 100px; justify-content: center; }
+
+    /* 添加记录弹窗 */
+    .modal-overlay {
+      display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,.4); z-index: 200; align-items: center; justify-content: center;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal {
+      background: #fff; border-radius: 14px; padding: 28px; width: 90%; max-width: 480px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.2);
+    }
+    .modal h3 { font-size: 18px; margin-bottom: 18px; }
+    .modal label { font-size: 12px; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 4px; margin-top: 12px; }
+    .modal label:first-of-type { margin-top: 0; }
+    .modal input, .modal select, .modal textarea {
+      width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; font-family: inherit;
+    }
+    .modal input:focus, .modal select:focus, .modal textarea:focus {
+      outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(26,54,93,.12);
+    }
+    .modal textarea { resize: vertical; min-height: 50px; }
+    .modal .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+
+    .kanban { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 8px; margin: 20px 0; }
+    .kanban-col {
+      min-width: 200px; flex: 1; background: #f1f4f9; border-radius: 10px; padding: 14px;
+    }
+    .kanban-col .col-title { font-size: 13px; font-weight: 600; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+    .kanban-col .col-title .count {
+      background: var(--border); padding: 0 8px; border-radius: 20px; font-size: 11px;
+    }
+    .kanban-card {
+      background: #fff; border-radius: 8px; padding: 12px; margin-bottom: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,.06); border: 1px solid var(--border); font-size: 13px;
+      position: relative;
+    }
+    .kanban-card .company { font-weight: 600; }
+    .kanban-card .position { font-size: 12px; color: var(--text-secondary); }
+    .kanban-card .meta { font-size: 11px; color: var(--text-secondary); margin-top: 4px; }
+    .kanban-card .card-actions { position: absolute; top: 8px; right: 8px; display: flex; gap: 4px; opacity: 0; transition: .2s; }
+    .kanban-card:hover .card-actions { opacity: 1; }
+    .kanban-card .card-actions button {
+      background: var(--bg); border: 1px solid var(--border); border-radius: 4px;
+      padding: 2px 6px; font-size: 11px; cursor: pointer;
+    }
+    .kanban-empty {
+      text-align: center; padding: 30px 14px; color: var(--text-secondary); font-size: 13px;
+    }
+
+    /* ===== CPA 知识库 ===== */
+    .cpa-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+    .cpa-tabs button {
+      padding: 10px 20px; border: 1.5px solid var(--border); border-radius: 10px;
+      background: #fff; font-size: 13px; font-weight: 600; cursor: pointer; transition: .2s;
+      color: var(--text-secondary);
+    }
+    .cpa-tabs button:hover { border-color: var(--primary); color: var(--primary); }
+    .cpa-tabs button.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .cpa-content { display: none; }
+    .cpa-content.active { display: block; }
+    .cpa-topic {
+      background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px;
+      margin-bottom: 10px; overflow: hidden; box-shadow: var(--shadow);
+    }
+    .cpa-topic .topic-header {
+      padding: 14px 20px; display: flex; justify-content: space-between; align-items: center;
+      cursor: pointer; font-weight: 600; font-size: 14px; transition: .2s;
+    }
+    .cpa-topic .topic-header:hover { background: #fafbfc; }
+    .cpa-topic .topic-header .arrow { transition: .2s; font-size: 12px; }
+    .cpa-topic.open .topic-header .arrow { transform: rotate(90deg); }
+    .cpa-topic .topic-body { display: none; padding: 0 20px 16px; font-size: 13px; color: var(--text-secondary); line-height: 1.7; }
+    .cpa-topic.open .topic-body { display: block; }
+
+    /* ===== Footer & Print ===== */
+    footer { text-align: center; padding: 40px 20px; color: var(--text-secondary); font-size: 13px; }
+    @media print {
+      .topbar, .hero, footer, .import-area, .import-status, .btn { display: none !important; }
+      .section { display: block !important; }
+      .resume-preview { box-shadow: none; border: 1px solid #ddd; break-inside: avoid; }
+    }
+    @media (max-width: 680px) {
+      .topbar .nav-links { display: none; }
+      .topbar .nav-links.open { display: flex; flex-direction: column; position: absolute; top: 60px; left: 0; right: 0; background: var(--primary); padding: 8px; z-index: 99; }
+      .hamburger { display: flex; }
+      .hero .stats { gap: 20px; }
+      .resume-form { grid-template-columns: 1fr; }
+      .kanban { flex-direction: column; }
+      .kanban-col { min-width: auto; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="logo">📊 <span>FI</span> · 面试全流程</div>
+  <nav class="nav-links" id="navLinks">
+    <a data-tab="home" class="active">首页</a>
+    <a data-tab="predict">简历押题</a>
+    <a data-tab="expense">面经库</a>
+    <a data-tab="kanban">日历</a>
+    <a data-tab="cpa">知识库</a>
+  </nav>
+  <button class="hamburger" id="hamburger" aria-label="菜单"><span></span><span></span><span></span></button>
+</header>
+
+<section class="hero">
+  <h1>你的财务面试备考助手</h1>
+  <p>从简历优化到模拟面试，从面经整理到进度管理，一站式搞定财务/审计方向求职</p>
+  <div class="stats">
+    <div><div class="num" id="heroExpenseCount">120+</div><div class="label">面经</div></div>
+    <div><div class="num">15</div><div class="label">简历模板</div></div>
+    <div><div class="num">200+</div><div class="label">面试题</div></div>
+  </div>
+</section>
+
+<div class="container">
+
+  <!-- ===== 首页 ===== -->
+  <section id="tab-home" class="section active">
+    <h2 class="section-title">功能模块</h2>
+    <div class="grid">
+      <div class="card" onclick="switchTab('predict')">
+        <div class="icon" style="background:#eef2ff;color:#4f6ef7;">🎯</div><h3>简历押题</h3>
+        <p>上传简历 → 自动解析 → AI 预测面试题 → 对话练习</p>
+      </div>
+      <div class="card" onclick="switchTab('expense')">
+        <div class="icon" style="background:#e6f7ed;color:#38a169;">📚</div><h3>面经库</h3>
+        <p>Word/PDF/图片导入 · 关键词分类 · 智能搜索</p>
+      </div>
+      <div class="card" onclick="switchTab('kanban')">
+        <div class="icon" style="background:#f3e8ff;color:#9333ea;">📅</div><h3>面试日历</h3>
+        <p>投递看板 · 添加/编辑/删除记录 · 进度追踪</p>
+      </div>
+      <div class="card" onclick="switchTab('cpa')">
+        <div class="icon" style="background:#fce7e7;color:#dc2626;">📖</div><h3>知识库</h3>
+        <p>CPA 六科 · 常考知识点 · 逐步完善中</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- 简历押题（简历 + 模拟面试合并） -->
+  <!-- ============================================================ -->
+  <section id="tab-predict" class="section">
+    <h2 class="section-title">🎯 简历押题</h2>
+
+    <!-- Step 1: 上传简历 -->
+    <div id="predictStep1">
+      <p style="color:var(--text-secondary);font-size:14px;margin-bottom:12px;">上传你的简历，系统自动解析内容并预测面试题。支持直接对话练习。</p>
+      <div class="import-area" id="predictImportArea">
+        <div class="big-icon">📄</div>
+        <p><strong>点击上传</strong> 或拖拽简历文件到此处</p>
+        <p class="formats">支持 PDF · Word (.docx) · 图片 (PNG/JPG) — 自动识别简历并押题</p>
+        <input type="file" id="predictFileInput" accept=".pdf,.docx,.doc,.png,.jpg,.jpeg" />
+      </div>
+      <div class="import-status" id="predictImportStatus"></div>
+    </div>
+
+    <!-- Step 2: 解析结果 + 押题（上传后显示） -->
+    <div id="predictResult" style="display:none;">
+
+      <!-- 简历摘要卡片 -->
+      <div style="background:#f8fafc;border:1px solid var(--border);border-radius:10px;padding:16px 20px;margin-bottom:20px;display:flex;flex-wrap:wrap;gap:16px;align-items:center;">
+        <div style="display:flex;align-items:center;gap:12px;flex:1;">
+          <div style="width:44px;height:44px;border-radius:10px;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;" id="predictNameAvatar">?</div>
+          <div>
+            <div style="font-weight:700;font-size:16px;" id="predictNameDisplay">未命名</div>
+            <div style="font-size:13px;color:var(--text-secondary);" id="predictInfoDisplay">目标岗位 · 学校</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn btn-outline btn-sm" onclick="showPredictResumeEditor()">📝 编辑简历</button>
+          <button class="btn btn-primary btn-sm" onclick="switchFileUpload()">🔄 换一份简历</button>
+        </div>
+      </div>
+
+      <!-- 简历编辑区（默认折叠） -->
+      <div id="predictResumeEditor" style="display:none;">
+        <div class="resume-preview" style="margin-top:0;">
+          <div class="header">
+            <h2>编辑简历</h2>
+            <button class="btn btn-primary btn-sm" onclick="savePredictResume()">💾 保存修改</button>
+          </div>
+          <div class="resume-form">
+            <div><label>姓名</label><input type="text" id="pName" /></div>
+            <div><label>目标岗位</label>
+              <select id="pPosition"><option value="">请选择</option><option>审计</option><option>会计</option><option>财务分析</option><option>税务</option><option>风控</option></select>
+            </div>
+            <div class="full"><label>联系方式</label><input type="text" id="pContact" /></div>
+            <div class="full"><label>教育经历</label><textarea id="pEducation" placeholder="学校 · 专业 · 时间 · GPA · 主修课程"></textarea></div>
+            <div class="full"><label>实习经历</label><textarea id="pExperience" placeholder="公司 · 岗位 · 时间 · 工作内容"></textarea></div>
+            <div class="full"><label>项目经历</label><textarea id="pProject" placeholder="科研项目 · 课程项目 · 比赛经历等"></textarea></div>
+            <div class="full"><label>技能证书</label><textarea id="pSkills" placeholder="CPA / ACCA / 英语 / 编程语言 / 专业软件等"></textarea></div>
+            <div class="full"><label>自我评价</label><textarea id="pSummary" placeholder="简要描述自己的优势和职业目标"></textarea></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- AI 预测面试题 -->
+      <h3 style="font-size:17px;margin:24px 0 4px;">🤖 AI 预测面试题</h3>
+      <p style="font-size:13px;color:var(--text-secondary);margin-bottom:14px;">根据你的简历内容，预测你可能被问到的面试题。点击题目直接开始对话练习。</p>
+
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;" id="predictQTabs">
+        <button class="filter-chip active" onclick="switchPredQ('behav')">行为面 <span class="q-count" id="behavCount">0</span></button>
+        <button class="filter-chip" onclick="switchPredQ('resumeQ')">简历面 <span class="q-count" id="resumeQCount">0</span></button>
+        <button class="filter-chip" onclick="switchPredQ('pro')">专业面 <span class="q-count" id="proCount">0</span></button>
+      </div>
+
+      <!-- 题目列表 -->
+      <div id="predictQList" style="margin-bottom:20px;"></div>
+
+      <!-- 对话练习区 -->
+      <div id="predictChatArea" style="display:none;">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
+          <h4 style="font-size:15px;" id="chatQuestionTitle">练习：题目标题</h4>
+          <div style="display:flex;gap:6px;">
+            <button class="btn btn-outline btn-sm" onclick="closePredictChat()">✕ 关闭练习</button>
+            <button class="btn btn-outline btn-sm" onclick="resetPredictChat()">🔄 重新开始</button>
+          </div>
+        </div>
+        <div class="sim-box" style="margin:0;">
+          <div id="predictChatBox" style="background:#f8fafc;border-radius:10px;border:1px solid var(--border);min-height:300px;max-height:400px;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px;"></div>
+          <div style="display:flex;gap:8px;margin-top:10px;">
+            <textarea id="predictChatInput" placeholder="输入你的回答…" style="flex:1;padding:10px 14px;border:1px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;resize:none;min-height:44px;max-height:80px;background:#fff;"></textarea>
+            <button class="btn btn-primary" onclick="sendPredictMsg()" style="align-self:flex-end;height:44px;padding:0 24px;">发送</button>
+          </div>
+          <div style="margin-top:6px;font-size:12px;color:#a0aec0;text-align:right;">Enter 发送 · Shift+Enter 换行</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- 面经库 -->
+  <!-- ============================================================ -->
+  <section id="tab-expense" class="section">
+    <h2 class="section-title">📚 面经库</h2>
+    <p style="color:var(--text-secondary);font-size:14px;margin-bottom:4px;">上传面经文件，自动提取公司/岗位/面试轮次等关键词。后续可按关键词搜索。</p>
+
+    <div class="expense-import-area" id="expenseImportArea">
+      <div class="big-icon">📂</div>
+      <p><strong>点击上传</strong> 或拖拽文件到此处</p>
+      <p class="formats">支持 Word (.docx) · PDF · 图片 (PNG/JPG) — 自动识别内容+提取关键词</p>
+      <input type="file" id="expenseFileInput" accept=".pdf,.docx,.doc,.png,.jpg,.jpeg" multiple />
+    </div>
+    <div class="import-status" id="expenseImportStatus"></div>
+
+    <div class="expense-search-bar">
+      <input type="text" id="expenseSearch" placeholder="🔍 搜公司、岗位、轮次、关键词…" />
+      <div class="hint">💡 先搜精确词，无结果则自动模糊匹配内容。例如搜"安永 群面"</div>
+    </div>
+
+    <!-- 筛选按钮 -->
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;" id="expenseFilters">
+      <button class="filter-chip active" data-filter="all">全部</button>
+      <button class="filter-chip" data-filter="company">🏢 公司</button>
+      <button class="filter-chip" data-filter="round">🔄 轮次</button>
+      <button class="filter-chip" data-filter="pos">💼 岗位</button>
+    </div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;min-height:0;" id="expenseSubFilters">
+      <!-- 子筛选 JS 渲染 -->
+
+    <div class="expense-list" id="expenseList">
+      <div class="expense-empty">暂无面经，上传文件开始整理吧 📤</div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- 日历（交互式看板） -->
+  <!-- ============================================================ -->
+  <section id="tab-kanban" class="section">
+    <h2 class="section-title">📅 面试进度 · 我的看板</h2>
+
+    <div class="kanban-toolbar">
+      <button class="btn btn-primary" onclick="openModal()">➕ 添加投递记录</button>
+    </div>
+
+    <div class="kanban" id="kanbanBoard">
+      <!-- 由 JS 动态渲染 -->
+    </div>
+
+    <!-- 添加/编辑弹窗 -->
+    <div class="modal-overlay" id="kanbanModal">
+      <div class="modal">
+        <h3 id="modalTitle">添加投递记录</h3>
+        <label>公司名称</label>
+        <input type="text" id="modalCompany" placeholder="例：安永" />
+        <label>目标岗位</label>
+        <input type="text" id="modalPosition" placeholder="例：审计" />
+        <label>当前阶段</label>
+        <select id="modalStage">
+          <option value="已投递">📋 已投递</option>
+          <option value="笔试">📄 笔试</option>
+          <option value="面试">🤝 面试</option>
+          <option value="已结束">✅ 已结束</option>
+        </select>
+        <label>关键日期</label>
+        <input type="date" id="modalDate" />
+        <label>备注</label>
+        <textarea id="modalNote" placeholder="面试时间、形式（线上/线下）、感受等"></textarea>
+        <div class="modal-actions">
+          <button class="btn btn-outline btn-sm" onclick="closeModal()">取消</button>
+          <button class="btn btn-primary btn-sm" onclick="saveKanbanItem()">保存</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- 知识库 — CPA 6 科（保留框架，用户后续完善） -->
+  <!-- ============================================================ -->
+  <section id="tab-cpa" class="section">
+    <h2 class="section-title">📖 知识库 · CPA 六科</h2>
+    <p style="color:var(--text-secondary);font-size:14px;margin-bottom:20px;">参照 CPA 专业阶段六门科目整理面试常考知识点。当前为初步框架，后续逐步完善。</p>
+
+    <div class="cpa-tabs" id="cpaTabs">
+      <button class="active" data-cpa="1">会计</button>
+      <button data-cpa="2">审计</button>
+      <button data-cpa="3">财务成本管理</button>
+      <button data-cpa="4">税法</button>
+      <button data-cpa="5">经济法</button>
+      <button data-cpa="6">公司战略与风险管理</button>
+    </div>
+
+    <!-- 会计 -->
+    <div class="cpa-content active" data-cpa="1">
+      <div class="cpa-topic open">
+        <div class="topic-header" onclick="toggleTopic(this)">三张财务报表的勾稽关系 <span class="arrow">▶</span></div>
+        <div class="topic-body">
+          <strong>核心逻辑：</strong>利润表的净利润 → 进入资产负债表的留存收益；同时影响现金流量表的经营活动现金流。<br/><br/>
+          <strong>面试高频问题：</strong><br/>
+          ① 如果一家公司收入增加但现金流减少，可能是什么原因？<br/>
+          ② 如何从三张表中判断一家公司是否存在盈余管理嫌疑？<br/>
+          ③ 资产负债表不平，如何排查？
+        </div>
+      </div>
+      <div class="cpa-topic">
+        <div class="topic-header" onclick="toggleTopic(this)">收入确认五步法（新收入准则） <span class="arrow">▶</span></div>
+        <div class="topic-body">
+          识别合同 → 识别履约义务 → 确定交易价格 → 分摊价格 → 在满足履约义务时确认收入。<br/><br/>
+          <strong>重点：</strong>时段 vs 时点确认、可变对价估计、重大融资成分的处理。
+        </div>
+      </div>
+      <div class="cpa-topic">
+        <div class="topic-header" onclick="toggleTopic(this)">金融资产分类与计量 <span class="arrow">▶</span></div>
+        <div class="topic-body">
+          三类：① 摊余成本计量（AC）② 公允价值计量且变动计入其他综合收益（FVOCI）③ 公允价值计量且变动计入当期损益（FVTPL）<br/><br/>
+          分类依据：业务模式 + 合同现金流量特征。
+        </div>
+      </div>
+      <div class="cpa-topic">
+        <div class="topic-header" onclick="toggleTopic(this)">长期股权投资与合并报表 <span class="arrow">▶</span></div>
+        <div class="topic-body">
+          控制（→ 成本法）vs 重大影响（→ 权益法）vs 无控制无重大影响 → 金融资产<br/>
+          商誉 = 合并成本 - 可辨认净资产公允价值份额
+        </div>
+      </div>
+    </div>
+
+    <!-- 审计 -->
+    <div class="cpa-content" data-cpa="2">
+      <div class="cpa-topic open">
+        <div class="topic-header" onclick="toggleTopic(this)">审计风险模型 <span class="arrow">▶</span></div>
+        <div class="topic-body">
+          <strong>审计风险 = 重大错报风险 × 检查风险</strong><br/><br/>
+          重大错报风险 = 固有风险 × 控制风险（与被审计单位相关）<br/>
+          检查风险 = 与审计程序设计和执行相关（审计师可以控制）
+        </div>
+      </div>
+      <div class="cpa-topic">
+        <div class="topic-header" onclick="toggleTopic(this)">审计程序类型 <span class="arrow">▶</span></div>
+        <div class="topic-body">
+          七大类：检查、观察、询问、函证、重新计算、重新执行、分析程序<br/><br/>
+          <strong>函证重点：</strong>银行函证（100%发函）、应收账款函证，控制函证全过程。
+        </div>
+      </div>
+      <div class="cpa-topic">
+        <div class="topic-header" onclick="toggleTopic(this)">三大审计报告意见类型 <span class="arrow">▶</span></div>
+        <div class="topic-body">
+          ① 无保留意见 ② 保留意见 ③ 否定意见 ④ 无法表示意见
+        </div>
+      </div>
+    </div>
+
+    <!-- 财管 -->
+    <div class="cpa-content" data-cpa="3">
+      <div class="cpa-topic open">
+        <div class="topic-header" onclick="toggleTopic(this)">杜邦分析体系 <span class="arrow">▶</span></div>
+        <div class="topic-body">
+          <strong>ROE = 净利率 × 资产周转率 × 权益乘数</strong><br/>
+          三层拆解：经营 profitability、资产效率、财务杠杆。
+        </div>
+      </div>
+      <div class="cpa-topic">
+        <div class="topic-header" onclick="toggleTopic(this)">DCF 估值模型 <span class="arrow">▶</span></div>
+        <div class="topic-body">
+          企业价值 = Σ FCFFₜ / (1+WACC)ᵗ + 终值<br/>
+          FCFF = 息税前利润×(1-税率) + 折旧摊销 - 资本性支出 - 营运资本增加
+        </div>
+      </div>
+      <div class="cpa-topic">
+        <div class="topic-header" onclick="toggleTopic(this)">本量利分析 <span class="arrow">▶</span></div>
+        <div class="topic-body">
+          盈亏平衡点销量 = 固定成本 / (单价 - 单位变动成本)<br/>
+          经营杠杆系数 DOL = 边际贡献 / 息税前利润
+        </div>
+      </div>
+    </div>
+
+    <!-- 税法 -->
+    <div class="cpa-content" data-cpa="4">
+      <div class="cpa-topic open">
+        <div class="topic-header" onclick="toggleTopic(this)">增值税核心要点 <span class="arrow">▶</span></div>
+        <div class="topic-body">
+          税率：13%（基本）、9%、6%、0%<br/>
+          计税方法：一般计税（销项-进项）、简易计税
+        </div>
+      </div>
+      <div class="cpa-topic">
+        <div class="topic-header" onclick="toggleTopic(this)">企业所得税 <span class="arrow">▶</span></div>
+        <div class="topic-body">
+          基本税率 25%，高新企业 15%<br/>
+          广宣费 15%、业务招待费 60%/5‰、公益性捐赠 12% 等扣除限额
+        </div>
+      </div>
+    </div>
+
+    <!-- 经济法 -->
+    <div class="cpa-content" data-cpa="5">
+      <div class="cpa-topic open">
+        <div class="topic-header" onclick="toggleTopic(this)">公司法·公司治理结构 <span class="arrow">▶</span></div>
+        <div class="topic-body">
+          三会一层：股东会、董事会、监事会、经理层<br/>
+          上市公司独立董事制度：至少 1/3 为独立董事
+        </div>
+      </div>
+      <div class="cpa-topic">
+        <div class="topic-header" onclick="toggleTopic(this)">证券法·信息披露 <span class="arrow">▶</span></div>
+        <div class="topic-body">
+          信息披露三原则：真实、准确、完整<br/>
+          内幕交易、操纵市场、虚假陈述的法律责任
+        </div>
+      </div>
+    </div>
+
+    <!-- 战略 -->
+    <div class="cpa-content" data-cpa="6">
+      <div class="cpa-topic open">
+        <div class="topic-header" onclick="toggleTopic(this)">波特五力模型 <span class="arrow">▶</span></div>
+        <div class="topic-body">
+          五力：供应商议价能力、购买者议价能力、新进入者威胁、替代品威胁、现有竞争者强度
+        </div>
+      </div>
+      <div class="cpa-topic">
+        <div class="topic-header" onclick="toggleTopic(this)">SWOT 与 BCG 矩阵 <span class="arrow">▶</span></div>
+        <div class="topic-body">
+          SWOT：内部优势/劣势 + 外部机会/威胁<br/>
+          BCG：明星、金牛、问题、瘦狗
+        </div>
+      </div>
+      <div class="cpa-topic">
+        <div class="topic-header" onclick="toggleTopic(this)">风险管理 <span class="arrow">▶</span></div>
+        <div class="topic-body">
+          COSO 框架：内控五要素<br/>
+          风险管理策略：承担、规避、转移、转换、对冲、控制
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<footer>Financial Interview · 面试全流程平台 · Demo v0.3</footer>
+
+<script>
+  // ================================================================
+  // Tab switching
+  // ================================================================
+  document.getElementById('navLinks').querySelectorAll('a').forEach(a => {
+    a.addEventListener('click', () => switchTab(a.dataset.tab));
+  });
+  function switchTab(tab) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.nav-links a').forEach(a => a.classList.toggle('active', a.dataset.tab === tab));
+    const el = document.getElementById('tab-' + tab);
+    if (el) el.classList.add('active');
+    document.getElementById('navLinks').classList.remove('open');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (tab === 'predict') initPredictPage();
+    if (tab === 'expense') renderExpenseList();
+  }
+  document.getElementById('hamburger').addEventListener('click', () => {
+    document.getElementById('navLinks').classList.toggle('open');
+  });
+
+  // ================================================================
+  
+  // ================================================================
+  // 简历押题（合并简历 + 模拟面试）
+  // ================================================================
+  let _predictData = null;
+  let _predictQuestions = {};
+  let _predictActiveQ = '';
+  let _predictChatMsgs = [];
+  let _predictChatIdx = 0;
+  let _predictChatQuestions = [];
+
+  // ---- 上传 ----
+  const predictImportArea = document.getElementById('predictImportArea');
+  const predictFileInput = document.getElementById('predictFileInput');
+
+  predictImportArea.addEventListener('click', () => predictFileInput.click());
+  predictImportArea.addEventListener('dragover', e => { e.preventDefault(); predictImportArea.classList.add('dragover'); });
+  predictImportArea.addEventListener('dragleave', () => predictImportArea.classList.remove('dragover'));
+  predictImportArea.addEventListener('drop', e => { e.preventDefault(); predictImportArea.classList.remove('dragover'); if (e.dataTransfer.files.length) handlePredictFile(e.dataTransfer.files[0]); });
+  predictFileInput.addEventListener('change', () => { if (predictFileInput.files.length) handlePredictFile(predictFileInput.files[0]); });
+
+  function handlePredictFile(file) {
+    const ext = file.name.split('.').pop().toLowerCase();
+    showStatus('predictImportStatus', '⏳ 正在解析简历…', 'loading');
+    const cb = (text) => { parsePredictText(text); };
+    if (ext === 'pdf') parsePredictPDF(file, cb);
+    else if (ext === 'docx' || ext === 'doc') parsePredictDocx(file, cb);
+    else if (['png','jpg','jpeg'].includes(ext)) parsePredictImage(file, cb);
+    else showStatus('predictImportStatus', '❌ 不支持的文件格式', 'error');
+  }
+
+  function parsePDFInternal(file, cb) {
+    const reader = new FileReader();
+    reader.onload = async function(e) {
+      try {
+        const data = new Uint8Array(e.target.result);
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        const pdf = await pdfjsLib.getDocument({ data }).promise;
+        let text = '';
+        for (let i = 1; i <= Math.min(pdf.numPages, 3); i++) {
+          const page = await pdf.getPage(i);
+          const content = await page.getTextContent();
+          text += content.items.map(item => item.str).join(' ') + '\n';
+        }
+        cb(text);
+      } catch(err) { showStatus('predictImportStatus', '❌ PDF 解析失败', 'error'); }
+    };
+    reader.readAsArrayBuffer(file);
+  }
+
+  function parsePredictPDF(file, cb) { parsePDFInternal(file, cb); }
+  function parsePredictDocx(file, cb) {
+    const reader = new FileReader();
+    reader.onload = async function(e) {
+      try { const r = await mammoth.extractRawText({ arrayBuffer: e.target.result }); cb(r.value); }
+      catch(err) { showStatus('predictImportStatus', '❌ Word 解析失败', 'error'); }
+    };
+    reader.readAsArrayBuffer(file);
+  }
+  function parsePredictImage(file, cb) {
+    const reader = new FileReader();
+    reader.onload = async function(e) {
+      try { const r = await Tesseract.recognize(e.target.result, 'chi_sim+eng'); cb(r.data.text); }
+      catch(err) { showStatus('predictImportStatus', '❌ OCR 识别失败', 'error'); }
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function parsePredictText(text) {
+    const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+    let name = (lines.length > 0 && lines[0].length < 8) ? lines[0] : '';
+    let position = '';
+    const posMap = { '审计':'审计','会计':'会计','财务分析':'财务分析','税务':'税务','风控':'风控' };
+    for (const [k,v] of Object.entries(posMap)) { if (text.match(new RegExp(k,'i'))) { position = v; break; } }
+    const email = (text.match(/[\w.-]+@[\w.-]+\.\w+/) || [''])[0];
+    const phone = (text.match(/1[3-9]\d{9}/) || [''])[0];
+    const contact = [phone,email].filter(Boolean).join(' · ');
+    const eduIdx = text.search(/教育|学校|大学|本科|硕士|GPA/i);
+    const education = eduIdx >= 0 ? text.slice(eduIdx, eduIdx+250).split('\n').slice(0,4).map(l=>l.trim()).filter(l=>l).join('\n') : '';
+    const expIdx = text.search(/实习|工作经历|工作内容/i);
+    const experience = expIdx >= 0 ? text.slice(expIdx, expIdx+300).split('\n').slice(0,6).map(l=>l.trim()).filter(l=>l).join('\n') : '';
+    const projIdx = text.search(/项目经历|项目经验|科研|比赛/i);
+    const project = projIdx >= 0 ? text.slice(projIdx, projIdx+250).split('\n').slice(0,4).map(l=>l.trim()).filter(l=>l).join('\n') : '';
+    const skillIdx = text.search(/技能|证书|CPA|ACCA|英语/i);
+    const skills = skillIdx >= 0 ? text.slice(skillIdx, skillIdx+150).split('\n').slice(0,3).map(l=>l.trim()).filter(l=>l).join('\n') : '';
+    const summIdx = text.search(/自我评价|个人总结|简介/i);
+    const summary = summIdx >= 0 ? text.slice(summIdx, summIdx+150).split('\n').slice(0,3).map(l=>l.trim()).filter(l=>l).join('\n') : '';
+
+    _predictData = { name, position, contact, education, experience, project, skills, summary };
+
+    document.getElementById('pName').value = name;
+    document.getElementById('pPosition').value = position;
+    document.getElementById('pContact').value = contact;
+    document.getElementById('pEducation').value = education;
+    document.getElementById('pExperience').value = experience;
+    document.getElementById('pProject').value = project;
+    document.getElementById('pSkills').value = skills;
+    document.getElementById('pSummary').value = summary;
+
+    document.getElementById('predictStep1').style.display = 'none';
+    document.getElementById('predictResult').style.display = 'block';
+    updatePredictHeader();
+    showStatus('predictImportStatus', '✅ 简历已识别，正在生成预测面试题…', 'loading');
+
+    setTimeout(() => {
+      generatePredictQuestions();
+      showStatus('predictImportStatus', '✅ 简历解析完成，以下是根据你的简历预测的面试题', 'success');
+    }, 500);
+  }
+
+  function updatePredictHeader() {
+    const d = _predictData;
+    document.getElementById('predictNameAvatar').textContent = (d.name || '?')[0];
+    document.getElementById('predictNameDisplay').textContent = d.name || '未命名';
+    const edu = (d.education||'').split('\n')[0] || '';
+    document.getElementById('predictInfoDisplay').textContent = (d.position||'未设目标岗位') + ' · ' + edu.slice(0,30);
+  }
+
+  function switchFileUpload() {
+    document.getElementById('predictResult').style.display = 'none';
+    document.getElementById('predictStep1').style.display = 'block';
+    document.getElementById('predictResumeEditor').style.display = 'none';
+    document.getElementById('predictChatArea').style.display = 'none';
+    hideStatus('predictImportStatus');
+  }
+
+  function showPredictResumeEditor() {
+    const editor = document.getElementById('predictResumeEditor');
+    editor.style.display = editor.style.display === 'none' ? 'block' : 'none';
+  }
+
+  function savePredictResume() {
+    _predictData.name = document.getElementById('pName').value;
+    _predictData.position = document.getElementById('pPosition').value;
+    _predictData.contact = document.getElementById('pContact').value;
+    _predictData.education = document.getElementById('pEducation').value;
+    _predictData.experience = document.getElementById('pExperience').value;
+    _predictData.project = document.getElementById('pProject').value;
+    _predictData.skills = document.getElementById('pSkills').value;
+    _predictData.summary = document.getElementById('pSummary').value;
+    updatePredictHeader();
+    document.getElementById('predictResumeEditor').style.display = 'none';
+    generatePredictQuestions();
+    showStatus('predictImportStatus', '✅ 简历已更新，预测题已重新生成', 'success');
+    setTimeout(() => hideStatus('predictImportStatus'), 2500);
+  }
+
+  // ---- 生成预测题 ----
+  function generatePredictQuestions() {
+    const rd = _predictData;
+    const expLines = (rd.experience||'').split('\n').filter(l => l.trim());
+    const projLines = (rd.project||'').split('\n').filter(l => l.trim());
+    const pos = rd.position || '财务';
+
+    _predictQuestions = { behav: [], resumeQ: [], pro: [] };
+
+    _predictQuestions.behav = [
+      '请先做个简短的自我介绍。',
+      '请分享一次你在团队中解决意见分歧的经历。',
+      '举一个你在紧迫的截止日期下完成任务的例子。',
+      '说说你经历过的一次失败，你从中学到了什么？',
+      '描述一次你主动学习新技能的经历。',
+    ];
+
+    if (expLines.length > 0) {
+      expLines.forEach(line => {
+        const clean = line.replace(/^[•\-·\s]+/,'');
+        if (clean.length > 5) {
+          _predictQuestions.resumeQ.push('关于实习「' + clean.slice(0,35) + '」，请详细说说你具体做了什么？遇到了什么困难？');
+          _predictQuestions.resumeQ.push('这项实习经历对你申请 ' + pos + ' 岗位有什么帮助？');
+        }
+      });
+    }
+    if (projLines.length > 0) {
+      projLines.forEach(line => {
+        const clean = line.replace(/^[•\-·\s]+/,'');
+        if (clean.length > 5) _predictQuestions.resumeQ.push('关于项目「' + clean.slice(0,35) + '」，你承担了什么角色？用了哪些方法？');
+      });
+    }
+    if (rd.education && rd.education.trim()) {
+      const school = (rd.education.split('\n')[0]||'').slice(0,40);
+      if (school) _predictQuestions.resumeQ.push('你的教育背景是「' + school + '」，哪些课程对申请 ' + pos + ' 最有帮助？');
+    }
+    if (rd.skills && rd.skills.trim()) {
+      _predictQuestions.resumeQ.push('你的技能中提到「' + rd.skills.slice(0,40) + '」，请举例说明如何在实际中应用。');
+    }
+    if (_predictQuestions.resumeQ.length === 0) {
+      _predictQuestions.resumeQ = ['请补充简历中的实习经历或项目经历，系统将生成个性化简历面题目。'];
+    }
+
+    if (pos === '审计' || pos === '会计') {
+      _predictQuestions.pro = [
+        '请解释审计风险模型及其在实际工作中的应用。',
+        '什么是实质性程序？有哪些类型？',
+        '请说明银行存款函证的程序和控制要点。',
+        '应收账款函证未回函，你应该如何处理？',
+        '请解释固定资产折旧的几种方法及其对企业利润的影响。',
+        '什么是商誉？商誉减值测试怎么做？',
+      ];
+    } else if (pos === '财务分析') {
+      _predictQuestions.pro = [
+        '请用杜邦分析法拆解 ROE，并说明各指标的含义。',
+        '一家公司毛利率突然大幅下降，可能的原因有哪些？',
+        '如何编制现金流量表？间接法和直接法的区别是什么？',
+        '什么是 DCF 估值模型？关键假设有哪些？',
+      ];
+    } else {
+      _predictQuestions.pro = [
+        '请解释三张财务报表的勾稽关系。',
+        '一家公司收入增加但现金流减少，可能是什么原因？',
+        '解释什么是重要性水平，在审计/财务工作中如何确定？',
+        '什么是实质重于形式原则？请举例说明。',
+      ];
+    }
+
+    document.getElementById('behavCount').textContent = _predictQuestions.behav.length;
+    document.getElementById('resumeQCount').textContent = _predictQuestions.resumeQ.length;
+    document.getElementById('proCount').textContent = _predictQuestions.pro.length;
+    switchPredQ('behav');
+  }
+
+  // ---- 题目切换 ----
+  function switchPredQ(type) {
+    _predictActiveQ = type;
+    document.querySelectorAll('#predictQTabs .filter-chip').forEach(b => b.classList.remove('active'));
+    const btns = document.querySelectorAll('#predictQTabs .filter-chip');
+    const idx = ['behav','resumeQ','pro'].indexOf(type);
+    if (btns[idx]) btns[idx].classList.add('active');
+
+    const qs = _predictQuestions[type] || [];
+    const list = document.getElementById('predictQList');
+
+    if (!qs || qs.length === 0) {
+      list.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-secondary);">暂无预测题目，请补充简历信息</div>';
+      return;
+    }
+
+    list.innerHTML = qs.map((q, i) => {
+      return '<div onclick="startPredictChat(\'' + type + '\',' + i + ')">' +
+        '<div style="display:flex;align-items:flex-start;gap:12px;padding:14px 18px;background:var(--card-bg);border:1px solid var(--border);border-radius:10px;margin-bottom:8px;cursor:pointer;transition:.2s;"' +
+        ' onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor=''">' +
+        '<span style="background:var(--primary);color:#fff;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;">' + (i+1) + '</span>' +
+        '<div style="flex:1;">' +
+        '<div style="font-size:14px;">' + escapeHtml(q) + '</div>' +
+        '<div style="font-size:12px;color:var(--accent);margin-top:4px;">🎤 点击开始对话练习 →</div>' +
+        '</div></div></div>';
+    }).join('');
+  }
+
+  // ---- 对话练习 ----
+  function startPredictChat(type, qIdx) {
+    const qs = _predictQuestions[type] || [];
+    if (qs.length === 0) return;
+    const labels = { behav:'行为面', resumeQ:'简历面', pro:'专业面' };
+    const qText = qs[qIdx];
+
+    document.getElementById('chatQuestionTitle').textContent = labels[type] + ' 练习：第 ' + (qIdx+1) + ' 题';
+    document.getElementById('predictChatArea').style.display = 'block';
+
+    _predictChatMsgs = [{ role:'interviewer', text: qText }];
+    _predictChatIdx = qIdx;
+    _predictChatQuestions = qs;
+    renderPredictChat();
+
+    document.getElementById('predictChatArea').scrollIntoView({ behavior:'smooth', block:'start' });
+  }
+
+  function renderPredictChat() {
+    const box = document.getElementById('predictChatBox');
+    box.innerHTML = _predictChatMsgs.map(msg => {
+      const isInterviewer = msg.role === 'interviewer';
+      return '<div class="sim-chat-msg ' + (isInterviewer ? 'interviewer' : 'user') + '">' +
+        '<div class="avatar">' + (isInterviewer ? '面' : '我') + '</div>' +
+        '<div class="bubble">' + escapeHtml(msg.text) +
+        '<div class="meta">' + (isInterviewer ? '面试官' : '我') + '</div></div></div>';
+    }).join('');
+    box.scrollTop = box.scrollHeight;
+    document.getElementById('predictChatInput').focus();
+  }
+
+  function sendPredictMsg() {
+    const input = document.getElementById('predictChatInput');
+    const text = input.value.trim();
+    if (!text) return;
+
+    _predictChatMsgs.push({ role:'user', text });
+    input.value = '';
+    renderPredictChat();
+
+    setTimeout(() => {
+      const nextIdx = _predictChatIdx + 1;
+      if (nextIdx < _predictChatQuestions.length) {
+        _predictChatMsgs.push({ role:'interviewer', text: _predictChatQuestions[nextIdx] });
+        _predictChatIdx = nextIdx;
+        document.getElementById('chatQuestionTitle').textContent = '练习：第 ' + (nextIdx+1) + ' 题';
+      } else {
+        _predictChatMsgs.push({ role:'interviewer', text: '🎉 本轮练习已全部完成！你可以选择其他面试类型或点击题目继续练习。' });
+      }
+      renderPredictChat();
+    }, 400);
+  }
+
+  function resetPredictChat() {
+    const qs = _predictChatQuestions;
+    if (qs.length > 0) {
+      _predictChatMsgs = [{ role:'interviewer', text: qs[0] }];
+      _predictChatIdx = 0;
+      renderPredictChat();
+    }
+  }
+
+  function closePredictChat() {
+    document.getElementById('predictChatArea').style.display = 'none';
+  }
+
+  document.getElementById('predictChatInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendPredictMsg(); }
+  });
+
+  function initPredictPage() {
+    if (_predictData && _predictData.name) {
+      document.getElementById('predictStep1').style.display = 'none';
+      document.getElementById('predictResult').style.display = 'block';
+      updatePredictHeader();
+      generatePredictQuestions();
+    }
+  }
+// 面经库 — 导入 + 关键词提取 + 智能搜索
+  // ================================================================
+  let expenseItems = [];
+  const expenseImportArea = document.getElementById('expenseImportArea');
+  const expenseFileInput = document.getElementById('expenseFileInput');
+  const expenseSearch = document.getElementById('expenseSearch');
+
+  expenseImportArea.addEventListener('click', () => expenseFileInput.click());
+  expenseImportArea.addEventListener('dragover', e => e.preventDefault());
+  expenseImportArea.addEventListener('drop', e => {
+    e.preventDefault();
+    if (e.dataTransfer.files.length) handleExpenseFiles(e.dataTransfer.files);
+  });
+  expenseFileInput.addEventListener('change', () => {
+    if (expenseFileInput.files.length) handleExpenseFiles(expenseFileInput.files);
+  });
+
+  expenseSearch.addEventListener('input', renderExpenseList);
+
+  // === 面经库筛选 ===
+  let _expenseFilterType = 'all';   // 'all' | 'company' | 'round' | 'pos'
+  let _expenseFilterValue = '';     // selected sub-filter value
+
+  function renderSubFilters() {
+    const cont = document.getElementById('expenseSubFilters');
+    if (_expenseFilterType === 'all') { cont.innerHTML = ''; return; }
+
+    // Gather unique values from all expense items
+    let values = new Set();
+    expenseItems.forEach(item => {
+      if (_expenseFilterType === 'company') item.tags.filter(t => t.type==='company').forEach(t => values.add(t.text));
+      else if (_expenseFilterType === 'round') item.tags.filter(t => t.type==='round').forEach(t => values.add(t.text));
+      else if (_expenseFilterType === 'pos') item.tags.filter(t => t.type==='pos').forEach(t => values.add(t.text));
+    });
+    const arr = Array.from(values).sort();
+    cont.innerHTML = '<button class="sub-filter-chip' + (!_expenseFilterValue ? ' active' : '') + '" onclick="setSubFilter(\'\')">全部</button>'
+      + arr.map(v => '<button class="sub-filter-chip' + (_expenseFilterValue === v ? ' active' : '') + '" onclick="setSubFilter(\'' + v + '\')">' + escHtml(v) + '</button>').join('');
+  }
+
+  function setSubFilter(val) {
+    _expenseFilterValue = val;
+    document.querySelectorAll('#expenseSubFilters .sub-filter-chip').forEach(b => b.classList.toggle('active', b.textContent === val || (!val && b.textContent === '全部')));
+    renderExpenseList();
+  }
+
+  document.querySelectorAll('#expenseFilters .filter-chip').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#expenseFilters .filter-chip').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      _expenseFilterType = btn.dataset.filter;
+      _expenseFilterValue = '';
+      renderSubFilters();
+      renderExpenseList();
+    });
+  });
+
+  function handleExpenseFiles(files) {
+    showStatus('expenseImportStatus', '⏳ 正在处理 ' + files.length + ' 个文件…', 'loading');
+    let done = 0;
+    for (let file of files) {
+      const ext = file.name.split('.').pop().toLowerCase();
+      const cb = () => { done++; if (done === files.length) finishExpenseImport(files.length); };
+      if (ext === 'pdf') parsePDF(file, text => addExpenseItem(text, file.name, cb));
+      else if (ext === 'docx' || ext === 'doc') parseDocx(file, text => addExpenseItem(text, file.name, cb));
+      else if (['png','jpg','jpeg'].includes(ext)) parseImage(file, text => addExpenseItem(text, file.name, cb));
+      else { done++; if (done === files.length) finishExpenseImport(files.length); }
+    }
+  }
+
+  function finishExpenseImport(count) {
+    const total = expenseItems.length;
+    document.getElementById('heroExpenseCount').textContent = total + '+';
+    showStatus('expenseImportStatus', '✅ 成功导入 ' + count + ' 条面经，共 ' + total + ' 条', 'success');
+    renderExpenseList();
+  }
+
+  function addExpenseItem(text, filename, cb) {
+    // === 关键词提取 ===
+    const companyKeywords = [
+      '普华永道','德勤','安永','毕马威','立信','天健','信永中和','大华','大信','容诚','中汇',
+      '工商银行','建设银行','农业银行','中国银行','招商银行','中信银行','交通银行','兴业银行','浦发银行',
+      '中金','中信证券','华泰证券','国泰君安','申万宏源','招商证券','广发证券',
+      '中国人寿','中国平安','中国人保','泰康',
+      '腾讯','阿里巴巴','华为','字节跳动','美团','京东','网易','百度',
+      '宝洁','联合利华','玛氏','欧莱雅',
+    ];
+    const roundKeywords = ['群面','经理面','par面','合伙人面','return面','HR面','一面','二面','三面','终面','笔试','Superday','AC面','案例分析','行为面','专业面'];
+    const posKeywords = ['审计','会计','财务','税务','咨询','风控','投行','交易','核算','分析','内控','合规'];
+
+    let foundCompanies = [];
+    let foundRounds = [];
+    let foundPositions = [];
+    let foundYear = (text.match(/(20\d{2})/) || [])[1] || '';
+
+    companyKeywords.forEach(kw => { if (text.includes(kw)) foundCompanies.push(kw); });
+    roundKeywords.forEach(kw => { if (text.includes(kw)) foundRounds.push(kw); });
+    posKeywords.forEach(kw => { if (text.includes(kw)) foundPositions.push(kw); });
+
+    // Also check filename
+    const fname = filename || '';
+    companyKeywords.forEach(kw => { if (fname.includes(kw) && !foundCompanies.includes(kw)) foundCompanies.push(kw); });
+    roundKeywords.forEach(kw => { if (fname.includes(kw) && !foundRounds.includes(kw)) foundRounds.push(kw); });
+    posKeywords.forEach(kw => { if (fname.includes(kw) && !foundPositions.includes(kw)) foundPositions.push(kw); });
+
+    // Build tags
+    const tags = [];
+    foundCompanies.forEach(c => tags.push({ type:'company', text:c }));
+    foundRounds.forEach(r => tags.push({ type:'round', text:r }));
+    foundPositions.forEach(p => tags.push({ type:'pos', text:p }));
+    if (tags.length === 0) tags.push({ type:'', text:'面经' });
+
+    // Title
+    const company = foundCompanies[0] || '未知公司';
+    const pos = foundPositions[0] || '面试';
+    const title = company + (foundRounds.length ? ' · ' + foundRounds.join(' · ') : '') + ' · ' + pos + ' 面经';
+
+    expenseItems.push({
+      id: Date.now() + Math.random(),
+      title,
+      source: filename + (foundYear ? ' · ' + foundYear : ''),
+      tags,
+      content: text.slice(0, 800),
+      fullContent: text,
+      date: new Date().toLocaleDateString('zh-CN'),
+      company,
+      rounds: foundRounds,
+      positions: foundPositions,
+      rawText: text,
+    });
+
+    if (cb) cb();
+  }
+
+  function renderExpenseList() {
+    const list = document.getElementById('expenseList');
+    const query = expenseSearch.value.trim().toLowerCase();
+
+    let filtered = expenseItems;
+
+    // Apply sub-filter (company / round / position)
+    if (_expenseFilterType !== 'all' && _expenseFilterValue) {
+      filtered = filtered.filter(item => {
+        if (_expenseFilterType === 'company') return item.tags.some(t => t.type === 'company' && t.text === _expenseFilterValue);
+        if (_expenseFilterType === 'round') return item.tags.some(t => t.type === 'round' && t.text === _expenseFilterValue);
+        if (_expenseFilterType === 'pos') return item.tags.some(t => t.type === 'pos' && t.text === _expenseFilterValue);
+        return true;
+      });
+    }
+
+    if (query) {
+      // 先精确匹配：搜索词在标题、公司名、轮次、岗位标签中匹配
+      let exact = filtered.filter(item => {
+        const titleMatch = item.title.toLowerCase().includes(query);
+        const tagMatch = item.tags.some(t => t.text.toLowerCase().includes(query));
+        const companyMatch = item.company.toLowerCase().includes(query);
+        const roundMatch = item.rounds.some(r => r.toLowerCase().includes(query));
+        const posMatch = item.positions.some(p => p.toLowerCase().includes(query));
+        return titleMatch || tagMatch || companyMatch || roundMatch || posMatch;
+      });
+
+      if (exact.length > 0) {
+        filtered = exact;
+      } else {
+        // 精确无结果，模糊搜索内容
+        const fuzzy = filtered.filter(item => {
+          const contentMatch = item.rawText.toLowerCase().includes(query);
+          return contentMatch;
+        });
+
+        if (fuzzy.length > 0) {
+          filtered = fuzzy;
+          // Mark the query as fuzzy-matched
+          filtered._fuzzy = true;
+        } else {
+          // 真无结果
+          list.innerHTML = '<div class="expense-empty">🔍 没找到"<strong>' + query + '</strong>"相关内容。<br/>换些关键词试试，比如搜公司名、岗位名、面试轮次。</div>';
+          return;
+        }
+      }
+    }
+
+    if (filtered.length === 0) {
+      list.innerHTML = '<div class="expense-empty">暂无面经，上传文件开始整理吧 📤</div>';
+      return;
+    }
+
+    // Sort newest first
+    filtered.sort((a,b) => b.id - a.id);
+
+    let fuzzyNote = filtered._fuzzy ? '<div style="padding:8px 14px;background:#fefce8;border-radius:8px;font-size:12px;color:#92400e;margin-bottom:10px;">🔍 精确匹配无结果，以下为模糊匹配（内容中含 "' + query + '" 的条目）</div>' : '';
+    delete filtered._fuzzy;
+
+    list.innerHTML = fuzzyNote + filtered.map(item => {
+      const tagHtml = item.tags.map(t => {
+        let cls = 'tag-pos';
+        if (t.type === 'company') cls = 'tag-company';
+        else if (t.type === 'round') cls = 'tag-round';
+        return '<span class="' + cls + '">' + escapeHtml(t.text) + '</span>';
+      }).join('');
+
+      // Highlight search term in content
+      let displayContent = item.content.slice(0, 300);
+      if (query && displayContent.toLowerCase().includes(query)) {
+        const idx = displayContent.toLowerCase().indexOf(query);
+        const before = displayContent.slice(0, idx);
+        const match = displayContent.slice(idx, idx + query.length);
+        const after = displayContent.slice(idx + query.length);
+        displayContent = before + '<span class="highlight">' + match + '</span>' + after;
+      }
+
+      return `
+        <div class="expense-item">
+          <div class="top">
+            <div class="info">
+              <h4>${escapeHtml(item.title)}</h4>
+              <div class="source">📄 ${escapeHtml(item.source)} · ${item.date}</div>
+            </div>
+            <button class="btn btn-outline btn-sm" onclick="deleteExpense(${item.id})">删除</button>
+          </div>
+          <div class="tags">${tagHtml}</div>
+          <div class="content-preview">${displayContent}${item.fullContent.length > 300 ? '…' : ''}</div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function deleteExpense(id) {
+    if (!confirm('确定删除这条面经吗？')) return;
+    expenseItems = expenseItems.filter(i => i.id !== id);
+    document.getElementById('heroExpenseCount').textContent = (expenseItems.length || '0') + '+';
+    renderExpenseList();
+  }
+
+  function escapeHtml(str) {
+    const d = document.createElement('div');
+    d.textContent = str;
+    return d.innerHTML;
+  }
+
+  // ================================================================
+  // 日历（交互式看板）
+  // ================================================================
+  const STAGES = ['已投递','笔试','面试','已结束'];
+  const STAGE_ICONS = ['📋','📄','🤝','✅'];
+  let kanbanItems = [];
+  let editingId = null;
+
+  // Initial demo data
+  kanbanItems.push({ id: 'demo1', company:'普华永道', position:'审计', stage:'已投递', date:'2027-03-12', note:'' });
+  kanbanItems.push({ id: 'demo2', company:'德勤', position:'财务咨询', stage:'已投递', date:'2027-03-15', note:'' });
+  kanbanItems.push({ id: 'demo3', company:'安永', position:'审计', stage:'笔试', date:'2027-03-20', note:'行测+专业测试' });
+  kanbanItems.push({ id: 'demo4', company:'毕马威', position:'审计', stage:'面试', date:'2027-04-02', note:'一面 线上 10:00' });
+  kanbanItems.push({ id: 'demo5', company:'某内资所', position:'审计', stage:'已结束', date:'2027-03-10', note:'未通过' });
+
+  function openModal(item) {
+    if (item) {
+      editingId = item.id;
+      document.getElementById('modalTitle').textContent = '编辑投递记录';
+      document.getElementById('modalCompany').value = item.company;
+      document.getElementById('modalPosition').value = item.position;
+      document.getElementById('modalStage').value = item.stage;
+      document.getElementById('modalDate').value = item.date;
+      document.getElementById('modalNote').value = item.note;
+    } else {
+      editingId = null;
+      document.getElementById('modalTitle').textContent = '添加投递记录';
+      document.getElementById('modalCompany').value = '';
+      document.getElementById('modalPosition').value = '';
+      document.getElementById('modalStage').value = '已投递';
+      document.getElementById('modalDate').value = new Date().toISOString().slice(0,10);
+      document.getElementById('modalNote').value = '';
+    }
+    document.getElementById('kanbanModal').classList.add('show');
+  }
+
+  function closeModal() {
+    document.getElementById('kanbanModal').classList.remove('show');
+  }
+
+  function saveKanbanItem() {
+    const company = document.getElementById('modalCompany').value.trim();
+    const position = document.getElementById('modalPosition').value.trim();
+    const stage = document.getElementById('modalStage').value;
+    const date = document.getElementById('modalDate').value;
+    const note = document.getElementById('modalNote').value.trim();
+
+    if (!company) { alert('请输入公司名称'); return; }
+    if (!position) { alert('请输入目标岗位'); return; }
+
+    if (editingId) {
+      const item = kanbanItems.find(i => i.id === editingId);
+      if (item) { item.company = company; item.position = position; item.stage = stage; item.date = date; item.note = note; }
+    } else {
+      kanbanItems.push({ id: 'k' + Date.now(), company, position, stage, date, note });
+    }
+
+    closeModal();
+    renderKanban();
+  }
+
+  function deleteKanbanItem(id) {
+    if (!confirm('确定删除这条记录吗？')) return;
+    kanbanItems = kanbanItems.filter(i => i.id !== id);
+    renderKanban();
+  }
+
+  function moveStage(id, newStage) {
+    const item = kanbanItems.find(i => i.id === id);
+    if (item) item.stage = newStage;
+    renderKanban();
+  }
+
+  function renderKanban() {
+    const board = document.getElementById('kanbanBoard');
+    board.innerHTML = STAGES.map((stage, si) => {
+      const items = kanbanItems.filter(i => i.stage === stage);
+      return `
+        <div class="kanban-col">
+          <div class="col-title">${STAGE_ICONS[si]} ${stage} <span class="count">${items.length}</span></div>
+          ${items.length === 0 ? '<div class="kanban-empty">暂无记录</div>' :
+            items.map(item => {
+              // Format date display
+              const dateStr = item.date ? item.date.replace(/-/g,'/').slice(5) : '';
+              return `
+                <div class="kanban-card">
+                  <div class="card-actions">
+                    <button onclick="openModal(kanbanItems.find(i=>i.id==='${item.id}'))">✏️</button>
+                    <button onclick="deleteKanbanItem('${item.id}')">🗑️</button>
+                  </div>
+                  <div class="company">${escapeHtml(item.company)}</div>
+                  <div class="position">${escapeHtml(item.position)}</div>
+                  <div class="meta">📅 ${dateStr}${item.note ? ' · ' + escapeHtml(item.note) : ''}</div>
+                  <div style="margin-top:6px;display:flex;gap:4px;flex-wrap:wrap;">
+                    ${STAGES.filter((s,i2) => i2 !== si).map(s =>
+                      `<button class="btn btn-sm" style="font-size:10px;padding:2px 8px;background:#f1f4f9;border:1px solid var(--border);border-radius:4px;cursor:pointer;" onclick="moveStage('${item.id}','${s}')">→ ${STAGE_ICONS[STAGES.indexOf(s)]}${s}</button>`
+                    ).join('')}
+                  </div>
+                </div>
+              `;
+            }).join('')}
+        </div>
+      `;
+    }).join('');
+  }
+
+  // Close modal on overlay click
+  document.getElementById('kanbanModal').addEventListener('click', e => {
+    if (e.target === document.getElementById('kanbanModal')) closeModal();
+  });
+
+  // ================================================================
+  // Helpers
+  // ================================================================
+  function showStatus(elId, msg, type) {
+    const el = document.getElementById(elId);
+    el.textContent = msg;
+    el.className = 'import-status show ' + type;
+  }
+  function hideStatus(elId) {
+    document.getElementById(elId).className = 'import-status';
+  }
+
+  // Init kanban on load
+  renderKanban();
+
+  // ===== CPA 知识库 — 科目切换 =====
+  document.querySelectorAll('#cpaTabs button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#cpaTabs button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.querySelectorAll('.cpa-content').forEach(c => c.classList.remove('active'));
+      const target = document.querySelector('.cpa-content[data-cpa="' + btn.dataset.cpa + '"]');
+      if (target) target.classList.add('active');
+    });
+  });
+
+  function toggleTopic(el) {
+    el.parentElement.classList.toggle('open');
+  }
+</script>
+</body>
+</html>

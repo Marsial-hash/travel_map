@@ -1,0 +1,34 @@
+name: Supabase Keepalive
+
+on:
+  schedule:
+    # 每天 UTC 02:00 = 北京时间 10:00
+    - cron: '0 2 * * *'
+  # 允许从 GitHub Actions 页面手动触发
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase REST API
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          # 如果 secrets 未配置，fallback 到公开值（已在客户端 HTML 中暴露）
+          URL="${SUPABASE_URL:-https://fmqthtgtzcsvjcfxfhce.supabase.co}"
+          KEY="${SUPABASE_KEY:-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZtcXRodGd0emNzdmpjZnhmaGNlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0NTAwOTEsImV4cCI6MjA5MzAyNjA5MX0.-N-P-Va9RuMlnYyy1S9ikvWGksGaHXGQwORzgySoLeA}"
+
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+            "${URL}/rest/v1/travel_cities?select=count" \
+            -H "apikey: ${KEY}" \
+            -H "Authorization: Bearer ${KEY}")
+
+          echo "Supabase 响应状态码: ${HTTP_CODE}"
+
+          if [ "${HTTP_CODE}" = "200" ]; then
+            echo "✅ Supabase 活跃检测通过"
+          else
+            echo "⚠️ 响应异常，但下次调度会重试"
+          fi
