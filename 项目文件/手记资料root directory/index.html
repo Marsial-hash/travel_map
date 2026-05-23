@@ -259,6 +259,22 @@
     margin-left: auto; font-weight: 500;
   }
 
+  /* ===== Loading ===== */
+  .loading-state {
+    grid-column: 1 / -1; text-align: center;
+    padding: 80px 20px; color: #b0a090;
+    display: none;
+  }
+  .loading-state.show { display: block; }
+  .loading-state .spinner {
+    width: 28px; height: 28px; margin: 0 auto 14px;
+    border: 3px solid #e8e1d8;
+    border-top-color: #c8a97e;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
   /* ===== Empty ===== */
   .empty-state {
     grid-column: 1 / -1; text-align: center;
@@ -463,7 +479,12 @@
 </div>
 
 <!-- ===== Grid ===== -->
-<div class="grid" id="grid"></div>
+<div class="grid" id="grid">
+  <div class="loading-state" id="loadingState">
+    <div class="spinner"></div>
+    <span>加载中...</span>
+  </div>
+</div>
 
 <!-- ===== Toast ===== -->
 <div class="toast" id="toast"></div>
@@ -709,6 +730,7 @@ let cities = [];
 
 // ===== Init =====
 async function init() {
+  document.getElementById('loadingState').classList.add('show');
   // Try Supabase first
   try {
     const data = await supabaseFetch();
@@ -1160,6 +1182,13 @@ function parseSmartInput() {
 }
 
 // ===== Modal =====
+let formSnapshot = '';
+
+function getFormState() {
+  const fields = ['fProvince','fCity','fCityEn','fCityCustom','fDistance','fAttractions','fRestaurants','fFoods','fAccommodation','fMonths'];
+  return fields.map(id => document.getElementById(id)?.value || '').join('|');
+}
+
 function openAddModal() {
   document.getElementById('editIndex').value = '';
   document.getElementById('modalTitle').textContent = '添加城市';
@@ -1167,6 +1196,7 @@ function openAddModal() {
   document.getElementById('modal').classList.add('active');
   document.getElementById('smartPasteBody').classList.remove('open');
   document.querySelector('.smart-paste-header').classList.remove('open');
+  formSnapshot = getFormState();
 }
 
 function openEditModal(i) {
@@ -1198,9 +1228,10 @@ function openEditModal(i) {
   document.getElementById('modal').classList.add('active');
   document.getElementById('smartPasteBody').classList.remove('open');
   document.querySelector('.smart-paste-header').classList.remove('open');
-}
+  formSnapshot = getFormState();
 
 function closeModal() {
+  if (getFormState() !== formSnapshot && !confirm('有未保存的更改，确定关闭吗？')) return;
   document.getElementById('modal').classList.remove('active');
 }
 

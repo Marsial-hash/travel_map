@@ -1,4 +1,4 @@
-const CACHE = 'travel-map-v2';
+const CACHE = 'travel-map-v3';
 
 const PRECACHE_URLS = [
   '/travel_map/',
