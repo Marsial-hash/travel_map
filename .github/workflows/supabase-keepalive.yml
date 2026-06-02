@@ -2,8 +2,8 @@ name: Supabase Keepalive
 
 on:
   schedule:
-    # 每天 UTC 02:00 = 北京时间 10:00
-    - cron: '0 2 * * *'
+    # 每天两次 — 北京时间 10:00 和 22:00
+    - cron: '0 2,14 * * *'
   # 允许从 GitHub Actions 页面手动触发
   workflow_dispatch:
 
@@ -11,24 +11,44 @@ jobs:
   ping:
     runs-on: ubuntu-latest
     steps:
-      - name: Ping Supabase REST API
+      - name: Supabase 写操作保活
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         run: |
-          # 如果 secrets 未配置，fallback 到公开值（已在客户端 HTML 中暴露）
           URL="${SUPABASE_URL:-https://fmqthtgtzcsvjcfxfhce.supabase.co}"
           KEY="${SUPABASE_KEY:-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZtcXRodGd0emNzdmpjZnhmaGNlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0NTAwOTEsImV4cCI6MjA5MzAyNjA5MX0.-N-P-Va9RuMlnYyy1S9ikvWGksGaHXGQwORzgySoLeA}"
 
-          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
-            "${URL}/rest/v1/travel_cities?select=count" \
-            -H "apikey: ${KEY}" \
-            -H "Authorization: Bearer ${KEY}")
+          HDR=(-H "apikey: ${KEY}" -H "Authorization: Bearer ${KEY}" -H "Content-Type: application/json" -H "Prefer: return=representation")
 
-          echo "Supabase 响应状态码: ${HTTP_CODE}"
+          echo "--- Step 1: INSERT marker ---"
+          INSERT_RESP=$(curl -s -w "\n%{http_code}" \
+            -X POST "${URL}/rest/v1/travel_cities" \
+            "${HDR[@]}" \
+            -d '{"province":"__keepalive__","city":"__keepalive__","city_en":"","distance":"","attractions":"","restaurants":"","foods":"","accommodation":"","months":""}')
 
-          if [ "${HTTP_CODE}" = "200" ]; then
-            echo "✅ Supabase 活跃检测通过"
-          else
-            echo "⚠️ 响应异常，但下次调度会重试"
+          INSERT_CODE=$(echo "$INSERT_RESP" | tail -1)
+          INSERT_BODY=$(echo "$INSERT_RESP" | sed '$d')
+          echo "INSERT HTTP ${INSERT_CODE}"
+
+          if [ "${INSERT_CODE}" != "201" ]; then
+            echo "⚠️ INSERT 失败，跳过 DELETE"
+            exit 0
           fi
+
+          # 提取 id
+          ID=$(echo "$INSERT_BODY" | python3 -c "import sys,json; data=json.load(sys.stdin); print(data[0]['id'])" 2>/dev/null)
+          echo "created id=${ID}"
+
+          if [ -z "${ID}" ] || [ "${ID}" = "null" ]; then
+            echo "⚠️ 未能获取 id"
+            exit 0
+          fi
+
+          echo "--- Step 2: DELETE marker ---"
+          DELETE_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+            -X DELETE "${URL}/rest/v1/travel_cities?id=eq.${ID}" \
+            -H "apikey: ${KEY}" -H "Authorization: Bearer ${KEY}")
+
+          echo "DELETE HTTP ${DELETE_CODE}"
+          echo "✅ Supabase 保活完成"
