@@ -250,6 +250,36 @@
 <!-- ===== Toast ===== -->
 <div class="toast" id="toast"></div>
 
+<!-- ===== Detail Modal ===== -->
+<div class="modal-overlay" id="detailModal">
+  <div class="modal" style="max-width:500px;">
+    <div class="modal-head">
+      <span class="title" id="detailTitle">城市详情</span>
+      <button class="close-btn" onclick="closeDetailModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="text-align:center;margin-bottom:20px;">
+        <div style="font-size:28px;font-weight:700;font-family:'Noto Serif SC',serif;color:var(--c1);" id="detailCity"></div>
+        <div id="detailStatus" style="margin-top:8px;"></div>
+      </div>
+      <div class="form-section-title">⭐ 评分</div>
+      <div style="display:flex;gap:6px;justify-content:center;padding:12px 0 20px;font-size:28px;" id="detailStars">
+        <button type="button" class="star" data-v="1" onclick="detailRating(1)" style="background:none;border:none;cursor:pointer;color:var(--bd);font-size:28px;transition:color .15s;">★</button>
+        <button type="button" class="star" data-v="2" onclick="detailRating(2)" style="background:none;border:none;cursor:pointer;color:var(--bd);font-size:28px;transition:color .15s;">★</button>
+        <button type="button" class="star" data-v="3" onclick="detailRating(3)" style="background:none;border:none;cursor:pointer;color:var(--bd);font-size:28px;transition:color .15s;">★</button>
+        <button type="button" class="star" data-v="4" onclick="detailRating(4)" style="background:none;border:none;cursor:pointer;color:var(--bd);font-size:28px;transition:color .15s;">★</button>
+        <button type="button" class="star" data-v="5" onclick="detailRating(5)" style="background:none;border:none;cursor:pointer;color:var(--bd);font-size:28px;transition:color .15s;">★</button>
+      </div>
+      <div class="form-section-title">📝 我的评价</div>
+      <textarea id="detailReview" placeholder="写一段你对这座城市的回忆或评价..." style="width:100%;padding:12px;border:1px solid var(--bd);border-radius:var(--r-sm);font-size:13px;font-family:inherit;background:var(--card);resize:vertical;min-height:100px;line-height:1.6;transition:border .2s;margin-top:6px;"></textarea>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-secondary" onclick="closeDetailModal()">取消</button>
+      <button class="btn btn-primary" onclick="saveDetail()">💾 保存</button>
+    </div>
+  </div>
+</div>
+
 <!-- ===== Modal ===== -->
 <div class="modal-overlay" id="modal">
   <div class="modal">
@@ -548,6 +578,8 @@ async function init() {
         if (migrated.length > 0) {
           cities = migrated.map(toCamelCase);
           localStorage.removeItem('travel_cities');
+          // Auto-migrate: old records without status default to been
+          cities.forEach(c => { if (!c.status) c.status = 'been'; });
           updateFilterDropdowns();
           updateStats();
           render();
@@ -558,6 +590,8 @@ async function init() {
       cities = [];
     } else {
       cities = data.map(toCamelCase);
+      // Auto-migrate old records
+      cities.forEach(c => { if (!c.status) c.status = 'been'; });
     }
   } catch (e) {
     console.error('Supabase load failed, trying localStorage fallback:', e);
@@ -570,7 +604,7 @@ async function init() {
           cityEn: c.cityEn || '', distance: c.distance || '',
           attractions: c.attractions || '', restaurants: c.restaurants || '',
           foods: c.foods || '', accommodation: c.accommodation || '', months: c.months || '',
-          status: c.status || 'want', rating: c.rating || 0
+          status: c.status || 'been', rating: c.rating || 0
         }));
         showToast('⚠ 云连接失败，已加载本地缓存数据');
       } catch(e2) { cities = []; }
@@ -759,12 +793,15 @@ function renderCard(i) {
       </div>
       <div class="card-body">
         <div class="info-block distance" style="display:flex;justify-content:space-between;align-items:center;">
-          <div>
+          <div style="flex:1;cursor:pointer;" onclick="openDetail(${i})">
             <div class="label">🚗 <span class="route">深圳·坂田 → ${esc(c.city)}市政府</span></div>
             <div class="value">${esc(c.distance || '未记录')}</div>
           </div>
-          ${(c.rating||0) > 0 ? stars : ''}
+          <div style="cursor:pointer;text-align:right;" onclick="openDetail(${i})">
+            ${(c.rating||0) > 0 ? stars : '<span style="font-size:11px;color:var(--fg3);">点击评分</span>'}
+          </div>
         </div>
+        ${c.review ? `<div style="padding:10px 14px;background:var(--bg);border-radius:var(--r-md);font-size:12px;color:var(--fg2);line-height:1.6;font-style:italic;cursor:pointer;border:1px solid var(--bd);" onclick="openDetail(${i})">💬 ${esc(c.review)}</div>` : ''}
         <div class="info-grid">
           <div class="info-cell">
             <div class="label">🎯 景点</div>
@@ -793,26 +830,73 @@ function renderCard(i) {
 }
 
 function updateStats() {
-  const been = cities.filter(c => c.status === 'been');
-  const want = cities.filter(c => c.status === 'want');
-  const provinces = [...new Set(been.map(c => c.province))];
-  const totalKm = been.reduce((sum, c) => {
+  // 所有记录默认算去过的省份和城市
+  const provinces = [...new Set(cities.map(c => c.province))];
+  const totalKm = cities.reduce((sum, c) => {
     const m = (c.distance || '').match(/(\d+)/);
     return sum + (m ? parseInt(m[1]) : 0);
   }, 0);
+  const been = cities.filter(c => c.status !== 'want');
+  const want = cities.filter(c => c.status === 'want');
   document.getElementById('stProvince').textContent = provinces.length;
-  document.getElementById('stCity').textContent = been.length;
+  document.getElementById('stCity').textContent = cities.length;
   document.getElementById('stKm').textContent = totalKm >= 1000 ? (totalKm/1000).toFixed(1)+'k' : totalKm;
   document.getElementById('stBeen').textContent = been.length;
   document.getElementById('stWant').textContent = want.length;
   document.getElementById('statsBar').classList.add('show');
-  // Food rank
+  // Food rank — 所有城市的美食统计
   const foodCount = {};
-  been.forEach(c => (c.foods||'').split(/[,，、]/).filter(Boolean).forEach(f => { foodCount[f] = (foodCount[f]||0) + 1; }));
+  cities.forEach(c => (c.foods||'').split(/[,，、]/).filter(Boolean).forEach(f => { foodCount[f] = (foodCount[f]||0) + 1; }));
   const top = Object.entries(foodCount).sort((a,b) => b[1]-a[1]).slice(0,5);
   document.getElementById('foodRank').innerHTML = top.map(([f]) => `<span class="tag">${esc(f)}</span>`).join('');
 }
 
+// ===== Detail Modal =====
+let detailIndex = -1;
+
+function openDetail(i) {
+  detailIndex = i;
+  const c = cities[i];
+  document.getElementById('detailTitle').textContent = c.city;
+  document.getElementById('detailCity').textContent = c.province + ' · ' + c.city + (c.cityEn ? ' (' + c.cityEn + ')' : '');
+  document.getElementById('detailStatus').innerHTML = c.status === 'been' ? '<span class="status-tag been">✔ 已去过</span>' : '<span class="status-tag want">✨ 想去</span>';
+  document.getElementById('detailReview').value = c.review || '';
+  // Set stars
+  const r = c.rating || 0;
+  document.querySelectorAll('#detailStars .star').forEach((b, i) => { b.style.color = i < r ? '#D97706' : ''; });
+  document.getElementById('detailModal').classList.add('active');
+}
+
+function closeDetailModal() {
+  document.getElementById('detailModal').classList.remove('active');
+}
+
+function detailRating(v) {
+  document.querySelectorAll('#detailStars .star').forEach((b, i) => {
+    b.style.color = i < v ? '#D97706' : '';
+  });
+  // Store in temp
+  document.querySelector('#detailStars .star:last-child').dataset.v = v;
+}
+
+async function saveDetail() {
+  if (detailIndex < 0) return;
+  const c = cities[detailIndex];
+  // Read rating from stars
+  let rating = 0;
+  document.querySelectorAll('#detailStars .star').forEach(b => { if (b.style.color === 'rgb(217, 119, 6)' || b.style.color === '#D97706') rating = Math.max(rating, parseInt(b.dataset.v)); });
+  c.rating = rating;
+  c.review = document.getElementById('detailReview').value.trim();
+  try {
+    if (c.id) await supabaseUpdate(c.id, toSnakeCase(c));
+  } catch(e) { saveData(); }
+  updateStats();
+  render();
+  closeDetailModal();
+  showToast('✔ 已保存');
+}
+
+// ===== Render Places =====
 function renderPlaces(text, city) {
   const items = parseItems(text);
   if (items.length === 0) return '<span style="color:#b8a99a;font-size:13px;">未记录</span>';
