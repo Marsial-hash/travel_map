@@ -756,69 +756,29 @@ const EMBEDDED_CITIES = [{"id":28,"province":"福建","city":"厦门","cityEn":"
 
 // ===== Init =====
 async function init() {
-  document.getElementById('loadingState').classList.add('show');
-  // Try Supabase first
-  try {
-    const data = await supabaseFetch();
-    if (data.length === 0) {
-      // Try fallback: migrate old localStorage data
-      const saved = localStorage.getItem('travel_cities');
-      if (saved) {
-        try {
-          const oldData = JSON.parse(saved);
-          const now = new Date().toISOString();
-          for (const item of oldData) {
-            await supabaseInsert({ ...toSnakeCase(item), created_at: now, updated_at: now });
-          }
-        } catch (e) { /* ignore migration errors */ }
-        // Re-fetch from Supabase
-        const migrated = await supabaseFetch();
-        if (migrated.length > 0) {
-          cities = migrated.map(toCamelCase);
-          localStorage.removeItem('travel_cities');
-          saveToLocalCache();
-          updateFilterDropdowns();
-          render();
-          return;
-        }
-      }
-      // No old data — empty state, no auto-fill
-      cities = [];
-    } else {
-      cities = data.map(toCamelCase);
-      saveToLocalCache(); // ← 缓存到本地
-      }
-    }
-  } catch (e) {
-    console.error('Supabase load failed, trying local cache:', e);
-    // Fallback: load from local cache first
-    const cached = loadFromLocalCache();
-    if (cached && cached.length > 0) {
-      cities = cached;
-      showToast('⚠ 云连接失败，已显示本地缓存数据');
-    } else {
-      // Ultra fallback: old localStorage format
-      const saved = localStorage.getItem('travel_cities');
-      if (saved) {
-        try {
-          cities = JSON.parse(saved).map(c => ({
-            id: null, province: c.province || '', city: c.city || '',
-            cityEn: c.cityEn || '', distance: c.distance || '',
-            attractions: c.attractions || '', restaurants: c.restaurants || '',
-            foods: c.foods || '', accommodation: c.accommodation || '', months: c.months || ''
-          }));
-          showToast('⚠ 云连接失败，已加载本地缓存数据');
-        } catch(e2) { cities = []; }
-      } else {
-        // Last resort: embedded recovery from Supabase cloud data
-        cities = EMBEDDED_CITIES;
-        saveToLocalCache();
-        showToast('📥 已从云端恢复数据');
-      }
-    }
+  // Show cached or embedded data immediately
+  const cached = loadFromLocalCache();
+  if (cached && cached.length > 0) {
+    cities = cached;
+  } else {
+    cities = EMBEDDED_CITIES;
+    saveToLocalCache();
   }
   updateFilterDropdowns();
   render();
+
+  // Then try to sync with Supabase in background
+  try {
+    const data = await supabaseFetch();
+    if (data && data.length > 0) {
+      cities = data.map(toCamelCase);
+      saveToLocalCache();
+      updateFilterDropdowns();
+      render();
+    }
+  } catch (e) {
+    console.warn('Supabase sync failed, using local data:', e);
+  }
 }
 
 function deepClone(o) { return JSON.parse(JSON.stringify(o)); }
@@ -1268,6 +1228,7 @@ function openEditModal(i) {
   document.getElementById('smartPasteBody').classList.remove('open');
   document.querySelector('.smart-paste-header').classList.remove('open');
   formSnapshot = getFormState();
+}
 
 function closeModal() {
   if (getFormState() !== formSnapshot && !confirm('有未保存的更改，确定关闭吗？')) return;
