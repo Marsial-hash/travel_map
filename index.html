@@ -144,6 +144,35 @@
   .modal-foot{padding:16px 28px 20px;border-top:1px solid var(--bd2);display:flex;gap:10px;justify-content:flex-end}
   .toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(80px);background:#292524;color:#fff;padding:10px 22px;border-radius:var(--r-md);font-size:13px;opacity:0;transition:all .35s var(--ease);z-index:200;pointer-events:none;box-shadow:var(--s-lg)}
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  /* ===== Rating Stars ===== */
+  .rating{display:flex;gap:3px;align-items:center}
+  .rating .star{background:none;border:none;cursor:pointer;font-size:16px;color:var(--bd);padding:0;line-height:1;transition:color .15s}
+  .rating .star.active{color:#D97706}
+  .rating .star:hover{color:#F59E0B}
+  .rating-static .star{font-size:14px;cursor:default}
+  .rating-static .star:hover{color:var(--bd)}
+  .rating-static .star.active{color:#D97706}
+  .status-tag{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:3px 10px;border-radius:12px;font-weight:500}
+  .status-tag.been{background:#DCFCE7;color:#166534}
+  .status-tag.want{background:#FEF9C3;color:#854D0E}
+  /* ===== Timeline ===== */
+  .timeline-filter{display:flex;gap:6px;margin-left:auto}
+  .timeline-btn{padding:5px 14px;border:1px solid var(--bd);border-radius:var(--r-sm);background:var(--card);cursor:pointer;font-size:12px;font-weight:500;color:var(--fg2);transition:all .15s;font-family:inherit}
+  .timeline-btn.active{background:var(--c1);color:#fff;border-color:var(--c1)}
+  .timeline-btn:hover:not(.active){background:var(--muted)}
+  .timeline-month{grid-column:1/-1;margin:8px 0 4px;display:flex;align-items:center;gap:10px}
+  .timeline-month .badge{font-size:12px;font-weight:600;color:var(--c1);background:var(--muted);padding:3px 12px;border-radius:12px}
+  .timeline-month .bar{flex:1;height:1px;background:linear-gradient(90deg,var(--bd),transparent)}
+  .timeline-month:first-of-type{margin-top:0}
+  /* ===== Stats ===== */
+  .stats-bar{max-width:1280px;margin:16px auto 0;padding:0 24px;display:none;gap:12px}
+  .stats-bar.show{display:flex}
+  .stat-card{flex:1;background:var(--card);border-radius:var(--r-md);padding:14px 16px;box-shadow:var(--s-sm);text-align:center;min-width:0}
+  .stat-card .num{font-size:22px;font-weight:700;color:var(--c1);font-family:"Noto Serif SC",serif}
+  .stat-card .lbl{font-size:11px;color:var(--fg2);margin-top:2px;font-weight:500}
+  .stat-card .sub{font-size:10px;color:var(--fg3);margin-top:1px}
+  .food-rank{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;margin-top:4px}
+  .food-rank .tag{font-size:10px;padding:1px 7px;background:var(--bg);border-radius:10px;color:var(--c1)}
   .card{animation:cardFadeIn .4s both}
   @keyframes cardFadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
   @media(max-width:768px){
@@ -158,6 +187,8 @@
     .modal-body,.modal-foot{padding:18px 20px}
     .card-head .name{font-size:20px}
     .card-actions{opacity:1}
+    .stats-bar.show{flex-wrap:wrap}
+    .stat-card{flex-basis:calc(50% - 6px)}
   }
   @media(max-width:480px){
     .card-body{padding:12px 14px 16px}
@@ -183,6 +214,15 @@
   <button class="btn btn-primary" onclick="openAddModal()">＋ 添加城市</button>
 </div>
 
+<!-- ===== Stats Bar ===== -->
+<div class="stats-bar" id="statsBar">
+  <div class="stat-card"><div class="num" id="stProvince">0</div><div class="lbl">省份</div></div>
+  <div class="stat-card"><div class="num" id="stCity">0</div><div class="lbl">城市</div></div>
+  <div class="stat-card"><div class="num" id="stKm">0</div><div class="lbl">总里程</div><div class="sub">公里</div></div>
+  <div class="stat-card"><div class="num" id="stBeen">0</div><div class="lbl">已去过</div></div>
+  <div class="stat-card"><div class="num" id="stWant">0</div><div class="lbl">想去</div><div class="food-rank" id="foodRank"></div></div>
+</div>
+
 <!-- ===== Filter Bar ===== -->
 <div class="filter-bar" id="filterBar">
   <label>🔍 筛选</label>
@@ -193,6 +233,10 @@
   <select id="filterCity" onchange="onFilterChange()">
     <option value="">全部城市</option>
   </select>
+  <div class="timeline-filter">
+    <button class="timeline-btn active" id="viewProvince" onclick="setView('province')">🗂 省份</button>
+    <button class="timeline-btn" id="viewTimeline" onclick="setView('timeline')">📅 时间线</button>
+  </div>
 </div>
 
 <!-- ===== Grid ===== -->
@@ -307,6 +351,27 @@
         <label>📅 最佳月份 / 季节</label>
         <textarea id="fMonths" placeholder="例：10月-11月" rows="1"></textarea>
       </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>✅ 状态</label>
+          <select id="fStatus">
+            <option value="want">想去 ✨</option>
+            <option value="been">去过 ✔</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>⭐ 评分</label>
+          <div style="display:flex;gap:4px;padding:9px 0;" id="fRatingStars">
+            <button type="button" class="star" data-v="1" onclick="setRating(1)" style="font-size:22px;">★</button>
+            <button type="button" class="star" data-v="2" onclick="setRating(2)" style="font-size:22px;">★</button>
+            <button type="button" class="star" data-v="3" onclick="setRating(3)" style="font-size:22px;">★</button>
+            <button type="button" class="star" data-v="4" onclick="setRating(4)" style="font-size:22px;">★</button>
+            <button type="button" class="star" data-v="5" onclick="setRating(5)" style="font-size:22px;">★</button>
+          </div>
+          <input type="hidden" id="fRating" value="0">
+        </div>
+      </div>
     </div>
 
     <div class="modal-foot">
@@ -356,11 +421,11 @@ async function supabaseDelete(id) {
 }
 
 function toCamelCase(row) {
-  return { id: row.id, province: row.province, city: row.city, cityEn: row.city_en || '', distance: row.distance || '', attractions: row.attractions || '', restaurants: row.restaurants || '', foods: row.foods || '', accommodation: row.accommodation || '', months: row.months || '' };
+  return { id: row.id, province: row.province, city: row.city, cityEn: row.city_en || '', distance: row.distance || '', attractions: row.attractions || '', restaurants: row.restaurants || '', foods: row.foods || '', accommodation: row.accommodation || '', months: row.months || '', status: row.status || 'want', rating: row.rating || 0 };
 }
 
 function toSnakeCase(d) {
-  return { province: d.province, city: d.city, city_en: d.cityEn || '', distance: d.distance || '', attractions: d.attractions || '', restaurants: d.restaurants || '', foods: d.foods || '', accommodation: d.accommodation || '', months: d.months || '' };
+  return { province: d.province, city: d.city, city_en: d.cityEn || '', distance: d.distance || '', attractions: d.attractions || '', restaurants: d.restaurants || '', foods: d.foods || '', accommodation: d.accommodation || '', months: d.months || '', status: d.status || 'want', rating: d.rating || 0 };
 }
 
 // ===== Sample Data =====
@@ -443,6 +508,23 @@ const DEFAULT_DATA = [
 
 // ===== State =====
 let cities = [];
+let viewMode = 'province'; // 'province' | 'timeline'
+
+// ===== Rating =====
+function setRating(v) {
+  document.getElementById('fRating').value = v;
+  document.querySelectorAll('#fRatingStars .star').forEach((b, i) => {
+    b.style.color = i < v ? '#D97706' : '';
+  });
+}
+
+// ===== View toggle =====
+function setView(v) {
+  viewMode = v;
+  document.getElementById('viewProvince').className = 'timeline-btn' + (v === 'province' ? ' active' : '');
+  document.getElementById('viewTimeline').className = 'timeline-btn' + (v === 'timeline' ? ' active' : '');
+  render();
+}
 
 // ===== Init =====
 async function init() {
@@ -467,6 +549,7 @@ async function init() {
           cities = migrated.map(toCamelCase);
           localStorage.removeItem('travel_cities');
           updateFilterDropdowns();
+          updateStats();
           render();
           return;
         }
@@ -486,7 +569,8 @@ async function init() {
           id: null, province: c.province || '', city: c.city || '',
           cityEn: c.cityEn || '', distance: c.distance || '',
           attractions: c.attractions || '', restaurants: c.restaurants || '',
-          foods: c.foods || '', accommodation: c.accommodation || '', months: c.months || ''
+          foods: c.foods || '', accommodation: c.accommodation || '', months: c.months || '',
+          status: c.status || 'want', rating: c.rating || 0
         }));
         showToast('⚠ 云连接失败，已加载本地缓存数据');
       } catch(e2) { cities = []; }
@@ -495,6 +579,7 @@ async function init() {
     }
   }
   updateFilterDropdowns();
+  updateStats();
   render();
 }
 
@@ -598,33 +683,36 @@ function render() {
     ? `共 ${cities.length} 座城市`
     : `共 ${cities.length} 座城市（筛选 ${filtered.length} 条）`;
 
-  // Group filtered results by province
+  if (viewMode === 'timeline') {
+    renderTimeline(filtered, grid);
+  } else {
+    renderProvince(filtered, grid);
+  }
+}
+
+function renderProvince(filtered, grid) {
   const groups = {};
   filtered.forEach(item => {
     const p = item.province || '其他';
     if (!groups[p]) groups[p] = [];
     groups[p].push(item._idx);
   });
-
   const provinceOrder = Object.keys(groups).sort((a, b) => {
     if (a === '广东') return -1; if (b === '广东') return 1;
     return a.localeCompare(b, 'zh');
   });
-
-  const provinceIcons = {
-    '广东': '🌴', '湖南': '🏯', '四川': '🐼', '福建': '🌊',
-    '海南': '🏖', '香港': '🌃', '澳门': '🎰', '广西': '🌿',
-    '云南': '🌸', '江西': '⛰', '浙江': '🌊', '江苏': '🏛',
-    '上海': '🏙', '北京': '🏛', '海外': '✈', '台湾': '🏮',
-    '贵州': '⛰', '湖北': '🏗', '安徽': '🏔', '山东': '⛵',
-    '河南': '🏛', '陕西': '🏺', '其他': '📍'
+  const pIcons = {
+    '广东':'🌴','湖南':'🏯','四川':'🐼','福建':'🌊',
+    '海南':'🏖','香港':'🌃','澳门':'🎰','广西':'🌿',
+    '云南':'🌸','江西':'⛰','浙江':'🌊','江苏':'🏛',
+    '上海':'🏙','北京':'🏛','海外':'✈','台湾':'🏮',
+    '贵州':'⛰','湖北':'🏗','安徽':'🏔','山东':'⛵',
+    '河南':'🏛','陕西':'🏺','其他':'📍'
   };
-
   let html = '';
   provinceOrder.forEach(province => {
-    const icon = provinceIcons[province] || '📍';
     html += `<div class="province-header">
-      <div class="icon">${icon}</div>
+      <div class="icon">${pIcons[province]||'📍'}</div>
       <div class="name">${esc(province)}</div>
       <div class="count">${groups[province].length} 座城市</div>
     </div>`;
@@ -633,13 +721,35 @@ function render() {
   grid.innerHTML = html;
 }
 
+function renderTimeline(filtered, grid) {
+  // Group by months field
+  const months = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+  const groups = {};
+  filtered.forEach(item => {
+    const m = (item.months || '').match(/(\d+)月/);
+    const key = m ? m[1] + '月' : '未记录';
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(item._idx);
+  });
+  let html = '';
+  // Sorted: months first, then 未记录
+  const order = months.filter(m => groups[m]).concat(['未记录'].filter(u => groups[u]));
+  order.forEach(month => {
+    html += `<div class="timeline-month"><span class="badge">${esc(month)}</span><span class="bar"></span></div>`;
+    html += groups[month].map(i => renderCard(i)).join('');
+  });
+  grid.innerHTML = html || '<div class="empty-state"><div class="icon">📅</div><h3>暂无时间数据</h3></div>';
+}
+
 function renderCard(i) {
   const c = cities[i];
+  const stars = '<span class="rating rating-static">' + [1,2,3,4,5].map(n => `<span class="star${n <= (c.rating||0) ? ' active':''}">★</span>`).join('') + '</span>';
+  const statusLabel = c.status === 'been' ? '<span class="status-tag been">✔ 去过</span>' : '<span class="status-tag want">✨ 想去</span>';
   return `
     <div class="card">
       <div class="card-head">
         <div>
-          <div class="name">${esc(c.city)}</div>
+          <div class="name">${esc(c.city)} ${statusLabel}</div>
           ${c.cityEn ? `<div class="name-en">${esc(c.cityEn)}</div>` : ''}
         </div>
         <div class="card-actions">
@@ -648,9 +758,12 @@ function renderCard(i) {
         </div>
       </div>
       <div class="card-body">
-        <div class="info-block distance">
-          <div class="label">🚗 <span class="route">深圳·坂田 → ${esc(c.city)}市政府</span></div>
-          <div class="value">${esc(c.distance || '未记录')}</div>
+        <div class="info-block distance" style="display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <div class="label">🚗 <span class="route">深圳·坂田 → ${esc(c.city)}市政府</span></div>
+            <div class="value">${esc(c.distance || '未记录')}</div>
+          </div>
+          ${(c.rating||0) > 0 ? stars : ''}
         </div>
         <div class="info-grid">
           <div class="info-cell">
@@ -677,6 +790,27 @@ function renderCard(i) {
       </div>
     </div>
   `;
+}
+
+function updateStats() {
+  const been = cities.filter(c => c.status === 'been');
+  const want = cities.filter(c => c.status === 'want');
+  const provinces = [...new Set(been.map(c => c.province))];
+  const totalKm = been.reduce((sum, c) => {
+    const m = (c.distance || '').match(/(\d+)/);
+    return sum + (m ? parseInt(m[1]) : 0);
+  }, 0);
+  document.getElementById('stProvince').textContent = provinces.length;
+  document.getElementById('stCity').textContent = been.length;
+  document.getElementById('stKm').textContent = totalKm >= 1000 ? (totalKm/1000).toFixed(1)+'k' : totalKm;
+  document.getElementById('stBeen').textContent = been.length;
+  document.getElementById('stWant').textContent = want.length;
+  document.getElementById('statsBar').classList.add('show');
+  // Food rank
+  const foodCount = {};
+  been.forEach(c => (c.foods||'').split(/[,，、]/).filter(Boolean).forEach(f => { foodCount[f] = (foodCount[f]||0) + 1; }));
+  const top = Object.entries(foodCount).sort((a,b) => b[1]-a[1]).slice(0,5);
+  document.getElementById('foodRank').innerHTML = top.map(([f]) => `<span class="tag">${esc(f)}</span>`).join('');
 }
 
 function renderPlaces(text, city) {
@@ -901,7 +1035,7 @@ function parseSmartInput() {
 let formSnapshot = '';
 
 function getFormState() {
-  const fields = ['fProvince','fCity','fCityEn','fCityCustom','fDistance','fAttractions','fRestaurants','fFoods','fAccommodation','fMonths'];
+  const fields = ['fProvince','fCity','fCityEn','fCityCustom','fDistance','fAttractions','fRestaurants','fFoods','fAccommodation','fMonths','fStatus','fRating'];
   return fields.map(id => document.getElementById(id)?.value || '').join('|');
 }
 
@@ -941,10 +1075,14 @@ function openEditModal(i) {
   document.getElementById('fFoods').value = c.foods || '';
   document.getElementById('fAccommodation').value = c.accommodation || '';
   document.getElementById('fMonths').value = c.months || '';
+  document.getElementById('fStatus').value = c.status || 'want';
+  document.getElementById('fRating').value = c.rating || 0;
+  setRating(c.rating || 0);
   document.getElementById('modal').classList.add('active');
   document.getElementById('smartPasteBody').classList.remove('open');
   document.querySelector('.smart-paste-header').classList.remove('open');
   formSnapshot = getFormState();
+}
 
 function closeModal() {
   if (getFormState() !== formSnapshot && !confirm('有未保存的更改，确定关闭吗？')) return;
@@ -952,8 +1090,11 @@ function closeModal() {
 }
 
 function clearForm() {
-  ['fProvince','fCity','fCityEn','fCityCustom','fDistance','fAttractions','fRestaurants','fFoods','fAccommodation','fMonths']
+  ['fProvince','fCity','fCityEn','fCityCustom','fDistance','fAttractions','fRestaurants','fFoods','fAccommodation','fMonths','fRating']
     .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  // Reset rating stars
+  document.querySelectorAll('#fRatingStars .star').forEach(b => b.style.color = '');
+  document.getElementById('fStatus').value = 'want';
   document.getElementById('fCity').disabled = true;
   document.getElementById('fCityCustomGroup').style.display = 'none';
 }
@@ -972,15 +1113,16 @@ async function saveCity() {
   }
 
   const data = {
-    province,
-    city,
+    province, city,
     cityEn: document.getElementById('fCityEn').value.trim(),
     distance: document.getElementById('fDistance').value.trim(),
     attractions: document.getElementById('fAttractions').value.trim(),
     restaurants: document.getElementById('fRestaurants').value.trim(),
     foods: document.getElementById('fFoods').value.trim(),
     accommodation: document.getElementById('fAccommodation').value.trim(),
-    months: document.getElementById('fMonths').value.trim()
+    months: document.getElementById('fMonths').value.trim(),
+    status: document.getElementById('fStatus').value,
+    rating: parseInt(document.getElementById('fRating').value) || 0
   };
 
   const idx = document.getElementById('editIndex').value;
@@ -1022,6 +1164,7 @@ async function saveCity() {
   }
 
   updateFilterDropdowns();
+  updateStats();
   render();
   closeModal();
 }
@@ -1088,6 +1231,7 @@ async function undo() {
   }
 
   updateFilterDropdowns();
+  updateStats();
   render();
 }
 
