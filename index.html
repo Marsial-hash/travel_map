@@ -787,6 +787,7 @@ async function init() {
     } else {
       cities = data.map(toCamelCase);
       saveToLocalCache(); // ← 缓存到本地
+      }
     }
   } catch (e) {
     console.error('Supabase load failed, trying local cache:', e);
