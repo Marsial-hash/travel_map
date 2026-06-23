@@ -203,7 +203,7 @@
 <div class="header">
   <h1>✈ 旅行手记 · <span>城市卡片</span></h1>
   <p class="sub">记录每一次出发 · 为下次重逢做攻略</p>
-  <span class="home-tag">📍 深圳 · 龙岗区坂田街道恒大都会广场</span>
+  <span class="home-tag">📍 深圳</span>
 </div>
 
 <!-- ===== Toolbar ===== -->
@@ -348,7 +348,7 @@
       </div>
 
       <div class="form-group">
-        <label>🚗 距离 · 深圳家 → 目的地市政府</label>
+        <label>🚗 距离</label>
         <textarea id="fDistance" placeholder="例：560公里（约6小时）" rows="1"></textarea>
       </div>
 
@@ -794,7 +794,7 @@ function renderCard(i) {
       <div class="card-body">
         <div class="info-block distance" style="display:flex;justify-content:space-between;align-items:center;">
           <div style="flex:1;cursor:pointer;" onclick="openDetail(${i})">
-            <div class="label">🚗 <span class="route">深圳·坂田 → ${esc(c.city)}市政府</span></div>
+            <div class="label">🚗 <span class="route">→ ${esc(c.city)}</span></div>
             <div class="value">${esc(c.distance || '未记录')}</div>
           </div>
           <div style="cursor:pointer;text-align:right;" onclick="openDetail(${i})">
@@ -1354,7 +1354,7 @@ function exportData() {
   const text = cities.map(c => {
     const line = (field) => field || '未记录';
     let out = `【${c.province ? '[' + c.province + '] ' : ''}${c.city}${c.cityEn ? ' · ' + c.cityEn : ''}】\n`;
-    out += `距离 · 深圳→${c.city}市政府：${line(c.distance)}\n`;
+    out += `距离：${line(c.distance)}\n`;
     out += `景点：${line(c.attractions)}\n`;
     out += `餐饮：${line(c.restaurants)}\n`;
     out += `美食：${line(c.foods)}\n`;
