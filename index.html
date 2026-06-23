@@ -728,6 +728,32 @@ const DEFAULT_DATA = [
 // ===== State =====
 let cities = [];
 
+// ===== Local Cache =====
+const CACHE_KEY = 'travel_cities_cache';
+
+function saveToLocalCache() {
+  try { localStorage.setItem(CACHE_KEY, JSON.stringify(cities)); } catch(e) {}
+}
+
+function loadFromLocalCache() {
+  try {
+    const saved = localStorage.getItem(CACHE_KEY);
+    if (saved) {
+      const c = JSON.parse(saved);
+      return c.map(item => ({
+        id: item.id || null, province: item.province || '', city: item.city || '',
+        cityEn: item.cityEn || '', distance: item.distance || '',
+        attractions: item.attractions || '', restaurants: item.restaurants || '',
+        foods: item.foods || '', accommodation: item.accommodation || '', months: item.months || ''
+      }));
+    }
+  } catch(e) {}
+  return null;
+}
+
+// ===== Embedded recovery from Supabase cloud data =====
+const EMBEDDED_CITIES = [{"id":28,"province":"福建","city":"厦门","cityEn":"","distance":"560公里（6小时）","attractions":"鼓浪屿（厦门市思明区鼓浪屿）, 园林博览苑（厦门市集美区集杏海堤66号）","restaurants":"老张饭店（嵩屿南路）","foods":"捞汁螺, 水煮三鲜, 姜母鸭","accommodation":"鹭海湾海景酒店（嵩屿码头）","months":"10-11月"},{"id":29,"province":"广东","city":"汕尾","cityEn":"","distance":"150公里（2小时）","attractions":"红海湾（汕尾市城区红海湾经济开发区）, 海滨栈道（汕尾市城区海滨街）","restaurants":"潮园海鲜砂锅粥","foods":"九肚鱼, 虾饼","accommodation":"","months":""},{"id":30,"province":"广东","city":"汕头","cityEn":"","distance":"330公里（3.5小时）","attractions":"海滨路（汕头市金平区海滨路）","restaurants":"雄盛李记牛肉火锅（杏花总店）","foods":"吊龙, 普宁豆腐","accommodation":"","months":""},{"id":31,"province":"广东","city":"中山","cityEn":"","distance":"110公里（1.5小时）","attractions":"","restaurants":"鸽鸟轩（东凤店）","foods":"脆皖鱼, 乳鸽, 鸽肾","accommodation":"","months":""},{"id":32,"province":"云南","city":"临沧","cityEn":"","distance":"1800公里（20小时）","attractions":"","restaurants":"玉芬食堂老院餐厅","foods":"干煸肥肠, 干巴, 炒牛肉","accommodation":"临沧铂悦酒店（适合中转）","months":""},{"id":33,"province":"云南","city":"红河","cityEn":"","distance":"1350公里（15小时）","attractions":"东风韵景区（红河哈尼族彝族自治州弥勒市东风韵）","restaurants":"","foods":"野生菌火锅, 烤肉, 石榴","accommodation":"东风韵景区内（含门票）","months":""},{"id":34,"province":"云南","city":"德宏","cityEn":"","distance":"2100公里（24小时）","attractions":"金塔银塔（德宏傣族景颇族自治州芒市金塔大街）, 珍奇园（德宏州芒市仙池路）, 一寨两国（德宏州瑞丽市银井）, 梁河温泉（德宏州梁河县）","restaurants":"","foods":"芒果炒牛肉, 热带水果","accommodation":"芒市宾馆, 南甸伴山温泉酒店","months":""},{"id":35,"province":"广西","city":"钦州","cityEn":"","distance":"660公里（7小时）","attractions":"三娘湾（钦州市钦南区三娘湾旅游区）","restaurants":"板城梅姐, 鸿发海鲜市场","foods":"生蚝, 海鲜粥, 烧烤, 水果","accommodation":"钦州万国饭店","months":""},{"id":36,"province":"广西","city":"柳州","cityEn":"","distance":"640公里（7小时）","attractions":"窑埠古镇（柳州市鱼峰区蟠龙路9号）","restaurants":"螺将军螺蛳楼","foods":"螺蛳粉, 螺蛳鸡","accommodation":"窑埠古镇内","months":""},{"id":41,"province":"广东","city":"深圳","cityEn":"","distance":"","attractions":"世界之窗","restaurants":"原石坂田万科广场","foods":"","accommodation":"","months":""},{"id":42,"province":"湖北","city":"鄂州","cityEn":"古武昌","distance":"1000公里（11小时）","attractions":"鄂州凤凰广场","restaurants":"荣凤酒楼","foods":"清蒸武昌鱼，藕带，小龙虾，烤猪蹄","accommodation":"芸朵酒店（鄂州市政府店）","months":"5月"},{"id":43,"province":"江西","city":"吉安","cityEn":"古庐陵","distance":"600公里（7小时）","attractions":"滨江生态公园","restaurants":"","foods":"永新血鸭，井冈山竹笋，永安豆腐，万安鱼头","accommodation":"万庭酒店","months":"5月"},{"id":44,"province":"湖北","city":"黄冈","cityEn":"古黄州","distance":"1000公里（11小时）","attractions":"遗爱湖公园，承天寺，赤壁怀古","restaurants":"","foods":"","accommodation":"","months":""},{"id":45,"province":"湖北","city":"武汉","cityEn":"武昌/汉口","distance":"1050公里（11小时）","attractions":"东湖公园，黄鹤楼，武汉长江大桥","restaurants":"周黑鸭","foods":"周黑鸭","accommodation":"","months":""},{"id":46,"province":"河南","city":"许昌","cityEn":"","distance":"1450公里（15小时）","attractions":"曹魏古城南城门","restaurants":"禹州十三碗","foods":"红烧鲤鱼","accommodation":"三国大酒店，许昌大酒店","months":""},{"id":47,"province":"河南","city":"郑州","cityEn":"","distance":"1550公里（16小时）","attractions":"中原福塔","restaurants":"","foods":"","accommodation":"","months":""},{"id":48,"province":"河南","city":"新乡","cityEn":"","distance":"1600公里（17小时）","attractions":"中原博物馆","restaurants":"三胖四楼美食区","foods":"","accommodation":"","months":""}];
+
 // ===== Init =====
 async function init() {
   document.getElementById('loadingState').classList.add('show');
@@ -750,6 +776,7 @@ async function init() {
         if (migrated.length > 0) {
           cities = migrated.map(toCamelCase);
           localStorage.removeItem('travel_cities');
+          saveToLocalCache();
           updateFilterDropdowns();
           render();
           return;
@@ -759,23 +786,34 @@ async function init() {
       cities = [];
     } else {
       cities = data.map(toCamelCase);
+      saveToLocalCache(); // ← 缓存到本地
     }
   } catch (e) {
-    console.error('Supabase load failed, trying localStorage fallback:', e);
-    // Fallback: load from old localStorage
-    const saved = localStorage.getItem('travel_cities');
-    if (saved) {
-      try {
-        cities = JSON.parse(saved).map(c => ({
-          id: null, province: c.province || '', city: c.city || '',
-          cityEn: c.cityEn || '', distance: c.distance || '',
-          attractions: c.attractions || '', restaurants: c.restaurants || '',
-          foods: c.foods || '', accommodation: c.accommodation || '', months: c.months || ''
-        }));
-        showToast('⚠ 云连接失败，已加载本地缓存数据');
-      } catch(e2) { cities = []; }
+    console.error('Supabase load failed, trying local cache:', e);
+    // Fallback: load from local cache first
+    const cached = loadFromLocalCache();
+    if (cached && cached.length > 0) {
+      cities = cached;
+      showToast('⚠ 云连接失败，已显示本地缓存数据');
     } else {
-      cities = [];
+      // Ultra fallback: old localStorage format
+      const saved = localStorage.getItem('travel_cities');
+      if (saved) {
+        try {
+          cities = JSON.parse(saved).map(c => ({
+            id: null, province: c.province || '', city: c.city || '',
+            cityEn: c.cityEn || '', distance: c.distance || '',
+            attractions: c.attractions || '', restaurants: c.restaurants || '',
+            foods: c.foods || '', accommodation: c.accommodation || '', months: c.months || ''
+          }));
+          showToast('⚠ 云连接失败，已加载本地缓存数据');
+        } catch(e2) { cities = []; }
+      } else {
+        // Last resort: embedded recovery from Supabase cloud data
+        cities = EMBEDDED_CITIES;
+        saveToLocalCache();
+        showToast('📥 已从云端恢复数据');
+      }
     }
   }
   updateFilterDropdowns();
