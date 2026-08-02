@@ -21,10 +21,16 @@ LIST_DATES = {
 
 
 def load_calendar_open_dates() -> list[date]:
-    """从物化日历加载开放日（date 类型）。"""
+    """从物化日历加载开放日（date 类型，兼容 Date 或 String 列）。"""
     cal = pl.read_parquet(PROJECT_ROOT / "warehouse" / "calendar" / "market_calendar_SSE.parquet")
     raw = cal.filter(pl.col("is_open") == 1).get_column("cal_date").to_list()
-    return sorted([date(int(d[:4]), int(d[4:6]), int(d[6:])) for d in raw])
+    out = []
+    for d in raw:
+        if isinstance(d, str):
+            out.append(date(int(d[:4]), int(d[4:6]), int(d[6:])))
+        else:
+            out.append(d)  # 已是 date 对象
+    return sorted(out)
 
 
 def share_coverage_start_date(code: str, share_first_date: date) -> date:

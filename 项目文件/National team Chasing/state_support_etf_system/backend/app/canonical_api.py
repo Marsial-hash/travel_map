@@ -127,11 +127,19 @@ def flows(
     # 1) knowledge: research_available_at <= knowledge_as_of（真实世界研究可用性）
     if "research_available_at" in df_code.columns and k_as_of is not None:
         df_code = df_code.filter(pl.col("research_available_at") <= k_as_of.date())
-    # 2) 业务日期范围
+    # 2) 业务日期范围（Date 类型，用 date 对象比较）
     if start_date:
-        df_code = df_code.filter(pl.col("trade_date") >= start_date)
+        try:
+            start_d = datetime.fromisoformat(start_date).date()
+        except ValueError as e:
+            raise HTTPException(status_code=422, detail="start_date must be ISO8601 date") from e
+        df_code = df_code.filter(pl.col("trade_date") >= start_d)
     if end_date:
-        df_code = df_code.filter(pl.col("trade_date") <= end_date)
+        try:
+            end_d = datetime.fromisoformat(end_date).date()
+        except ValueError as e:
+            raise HTTPException(status_code=422, detail="end_date must be ISO8601 date") from e
+        df_code = df_code.filter(pl.col("trade_date") <= end_d)
     rows = df_code.head(5000).to_dicts()
     return {
         "instrument_id": instrument_id,
