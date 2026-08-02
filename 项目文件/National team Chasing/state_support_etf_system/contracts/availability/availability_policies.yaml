@@ -1,0 +1,75 @@
+contract_version: 1.0.0
+updated_at: 2026-08-02
+timezone: Asia/Shanghai
+
+policies:
+  - policy_id: TUSHARE_FUND_SHARE_V1_CONSERVATIVE
+    data_source: TUSHARE_FUND_SHARE
+    dataset_name: fund_share
+    official_publication_rule: UNKNOWN(未实测)
+    conservative_backtest_rule: T+2 09:30
+    basis: CONSERVATIVE_POLICY
+    confidence: LOW
+    live_signal_approved: false
+    effective_from: 2026-08-02
+    evidence_status: UNVERIFIED
+    notes: 不得原地修改；实测后新增V2_OBSERVED
+
+  - policy_id: TENCENT_QUOTES_V1
+    data_source: TENCENT_QUOTES
+    dataset_name: etf_quote
+    official_publication_rule: T日15:00后收盘数据可见
+    conservative_backtest_rule: T日15:30
+    basis: LIVE_OBSERVATION
+    confidence: MEDIUM
+    live_signal_approved: false
+    effective_from: 2026-08-02
+    evidence_status: CONFIRMED
+
+  - policy_id: SOHU_INDEX_V1
+    data_source: SOHU_HISQ
+    dataset_name: index_turnover
+    official_publication_rule: T日15:00后
+    conservative_backtest_rule: T日15:30
+    basis: LIVE_OBSERVATION
+    confidence: MEDIUM
+    live_signal_approved: false
+    effective_from: 2026-08-02
+    evidence_status: CONFIRMED
+
+  - policy_id: EM_NAV_V1
+    data_source: EM_NAV
+    dataset_name: fund_nav
+    official_publication_rule: 净值通常T日晚间发布(未连续观察)
+    conservative_backtest_rule: T+1 09:30
+    basis: CONSERVATIVE_POLICY
+    confidence: LOW
+    live_signal_approved: false
+    effective_from: 2026-08-02
+    evidence_status: UNVERIFIED
+
+  - policy_id: FUND_REPORT_V1
+    data_source: FUND_DISCLOSURE
+    dataset_name: fund_periodic_report
+    official_publication_rule: 披露公告日
+    conservative_backtest_rule: 披露日09:30
+    basis: OFFICIAL_DOCUMENTATION
+    confidence: MEDIUM
+    live_signal_approved: false
+    effective_from: 2026-08-02
+    evidence_status: CONFIRMED
+
+time_fields:
+  - event_time
+  - trade_date
+  - source_published_at
+  - source_observed_at
+  - research_available_at
+  - first_seen_at
+  - ingested_at
+  - revised_at
+
+rules:
+  - research_available_at 必须由证据或保守政策支持，不得拍脑袋
+  - 不得把集思录08:06或etf_share_size 08:30套用到fund_share
+  - 生产实时用first_seen_at；历史回测用research_available_at

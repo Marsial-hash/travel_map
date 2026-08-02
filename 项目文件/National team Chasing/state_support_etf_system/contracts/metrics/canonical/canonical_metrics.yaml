@@ -1,0 +1,157 @@
+contract_version: 1.0.0
+namespace: canonical
+updated_at: 2026-08-02
+purpose: 正式研究指标，Point-in-time可用，可追溯
+
+metrics:
+  - id: canonical_raw_close
+    chinese_name: 原始收盘价
+    definition: 行情源未复权收盘价
+    formula: quote.close
+    data_source: TENCENT_QUOTES/SZSE_RT
+    unit: 元
+    is_estimate: false
+    time_availability: T日15:00后
+    model_eligible: true
+
+  - id: canonical_adjusted_close
+    chinese_name: 复权收盘价
+    definition: 复权因子调整后收盘价
+    formula: raw_close × adjustment_factor
+    data_source: TENCENT_QUOTES
+    unit: 元
+    is_estimate: false
+    time_availability: T日15:00后
+    model_eligible: true
+
+  - id: canonical_volume
+    chinese_name: 原始成交量
+    definition: 行情源成交量(手)
+    formula: quote.volume
+    data_source: TENCENT_QUOTES
+    unit: 手
+    is_estimate: false
+    time_availability: T日15:00后
+    model_eligible: true
+
+  - id: canonical_turnover_amount
+    chinese_name: 真实货币成交额
+    definition: 数据源真实成交额(元)
+    formula: quote.amount
+    data_source: SOHU_HISQ/SZSE_RT
+    unit: 元
+    is_estimate: false
+    time_availability: T日15:00后
+    model_eligible: true
+    test_cases: ["510300 2026-07-31 搜狐70.1655亿 vs 参考估算70.126亿 偏差0.06%"]
+
+  - id: canonical_raw_total_shares
+    chinese_name: 原始总份额
+    definition: 当日清算后存续份额总数(不含PCF)
+    formula: share_source.total_shares
+    data_source: TUSHARE_FUND_SHARE(待实测)
+    unit: 份
+    is_estimate: false
+    time_availability: T+1保守(V1)
+    model_eligible: true
+    pcf_protection: true
+
+  - id: canonical_adjusted_share_units
+    chinese_name: 调整后份额单位
+    definition: 应用已验证调整事件后的份额
+    formula: raw_total_shares × adjustment_factor
+    data_source: 份额源+调整事件
+    unit: 份
+    is_estimate: false
+    time_availability: T+1保守
+    model_eligible: true
+
+  - id: canonical_delta_raw_shares
+    chinese_name: 原始份额差分
+    definition: 原始份额变化(未经验证不得作流量输入)
+    formula: raw_shares_t - raw_shares_prev
+    data_source: 份额源
+    unit: 份
+    is_estimate: false
+    time_availability: T+1保守
+    model_eligible: true
+    gating: daily_flow_eligible AND economic_flow_eligible
+
+  - id: canonical_economic_delta_shares
+    chinese_name: 经济有效份额变化
+    definition: 调整因子验证后允许用于流量估算的份额变化
+    formula: delta_raw_shares (当事件污染CLEAN) 或 调整后差分 (当CONFIRMED_ADJUSTMENT_APPLIED且三验证通过)
+    data_source: 份额源+调整事件
+    unit: 份
+    is_estimate: false
+    time_availability: T+1保守
+    model_eligible: true
+    hard_rule: 正式流量不得无条件使用canonical_delta_raw_shares
+
+  - id: canonical_estimated_primary_market_flow_nav
+    chinese_name: NAV口径估算一级市场净申赎规模
+    definition: 经济有效份额变化×NAV
+    formula: canonical_economic_delta_shares × nav
+    data_source: 份额源+EM_NAV
+    unit: 元
+    is_estimate: true
+    is_cash_flow_observed: false
+    time_availability: T+1保守
+    model_eligible: true
+    gating: daily_flow_eligible AND economic_flow_eligible AND nav_flow_eligible
+
+  - id: canonical_estimated_primary_market_flow_close
+    chinese_name: 收盘价口径估算一级市场净申赎规模
+    definition: 经济有效份额变化×收盘价
+    formula: canonical_economic_delta_shares × canonical_raw_close
+    data_source: 份额源+行情
+    unit: 元
+    is_estimate: true
+    is_cash_flow_observed: false
+    time_availability: T+1保守
+    model_eligible: true
+    gating: daily_flow_eligible AND economic_flow_eligible AND close_flow_eligible
+
+  - id: canonical_index_close
+    chinese_name: 正式指数收盘
+    definition: 权威指数收盘点位
+    formula: index_close
+    data_source: 中证官网/TUSHARE(待实测)
+    unit: 点
+    is_estimate: false
+    time_availability: T日
+    model_eligible: true
+
+  - id: canonical_index_turnover
+    chinese_name: 正式指数成交额
+    definition: 语义验证后的指数成交额
+    formula: 待对账(语义验证完成前不可用)
+    data_source: 待定
+    unit: 元
+    is_estimate: false
+    time_availability: T日
+    model_eligible: true
+    semantic_note: 搜狐字段仅可称vendor_reported_index_turnover
+
+  - id: canonical_aggregate_holding_ratio
+    chinese_name: 正式合计持仓比例
+    definition: 同报告期或混合快照的份额加权比例
+    formula: "Σheld_shares / Σtotal_shares × 100"
+    data_source: FUND_DISCLOSURE
+    unit: "%"
+    is_estimate: false
+    time_availability: 披露日
+    model_eligible: true
+    snapshot_policy: SAME_REPORT_PERIOD 或 LATEST_AVAILABLE_MIXED(须标注)
+
+gating_fields:
+  daily_flow_eligible: open_session_distance==1 AND missing_open_session_count==0
+  economic_flow_eligible: "daily_flow_eligible AND unit_consistency_passed AND identity_continuity_passed AND event_contamination_status==CLEAN AND source_revision_status!=UNRESOLVED"
+  nav_flow_eligible: NAV日期/单位/PIT可用性验证
+  close_flow_eligible: 价格日期/单位/PIT可用性验证
+  adjustment_rule: "event_contamination_status==CONFIRMED_ADJUSTMENT_APPLIED 时须 adjustment_factor_verified AND share_unit_basis_matched AND valuation_unit_basis_matched 全true"
+
+flow_metadata:
+  is_cash_flow_observed: false
+  is_share_based_estimate: true
+  frontend_label: "该ETF按NAV口径估算的一级市场净申赎规模约X亿元。该估算不能识别具体申购账户。"

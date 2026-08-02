@@ -1,0 +1,44 @@
+contract_version: 1.0.0
+updated_at: 2026-08-02
+
+execution_price_types:
+  - NEXT_MINUTE_OPEN
+  - NEXT_5MIN_VWAP
+  - SAME_DAY_CLOSE
+  - NEXT_DAY_OPEN
+  - NEXT_DAY_CLOSE
+  - CUSTOM_CONSERVATIVE
+
+delay_policies:
+  - policy_id: EXEC_DELAY_V1_CONSERVATIVE
+    rule: 数据可用后第一个合法交易时段价格(NEXT_MINUTE_OPEN)
+    min_granularity_minutes: 1
+    notes: 默认
+
+  - policy_id: EXEC_DELAY_V2_VWAP5
+    rule: 可用后5分钟VWAP
+    notes: 备选
+
+  - policy_id: EXEC_DELAY_V3_NEXT_DAY_OPEN
+    rule: 下一个开放日开盘价
+    notes: 最保守
+
+  - policy_id: EXEC_DELAY_V4_SAME_DAY_CLOSE
+    rule: 当日收盘价(仅数据收盘前可用且决策收盘前)
+    notes: 特殊场景
+
+hard_rules:
+  - "execution_price_timestamp > research_available_at"
+  - "execution_price_timestamp > decision_generated_at"
+  - "09:30可用的数据不得按09:30开盘价成交(最小粒度1分钟)"
+  - "盘后数据不得按当日收盘价成交"
+  - "午间休市11:30-13:00不得生成11:31成交"
+  - "15:00后不得生成15:01连续竞价成交"
+  - "节假日不得生成交易价格"
+
+fields:
+  - decision_generated_at
+  - execution_eligible_at
+  - execution_price_timestamp
+  - execution_price_type
+  - execution_delay_policy_id

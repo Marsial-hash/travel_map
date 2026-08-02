@@ -1,0 +1,421 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>桃子冰粉.汇金证金及其关联公司持仓追踪</title>
+  <link rel="icon" href="static/assets/favicon.ico?v=20260730-peach-dog-favicon" sizes="any" />
+  <link rel="icon" type="image/png" sizes="32x32" href="static/assets/favicon-32.png?v=20260730-peach-dog-favicon" />
+  <link rel="icon" type="image/png" sizes="16x16" href="static/assets/favicon-16.png?v=20260730-peach-dog-favicon" />
+  <link rel="apple-touch-icon" sizes="180x180" href="static/assets/apple-touch-icon.png?v=20260730-peach-dog-favicon" />
+  <link rel="manifest" href="static/site.webmanifest?v=20260730-peach-dog-favicon" />
+  <meta name="theme-color" content="#fffaf6" />
+  <link rel="stylesheet" href="static/styles.css?v=b8bf91e0853f" />
+</head>
+<body>
+  <main class="app-shell">
+    <header class="topbar">
+      <div class="topbar-content">
+        <section id="interactionPolls" class="interaction-polls top-hot-polls" aria-label="热点站队投票">
+          <div class="poll-line poll-line-hot" aria-label="今日站队投票">
+            <span class="poll-topic poll-topic-primary">
+              <span class="poll-label hot-poll-label"><span class="poll-flame" aria-hidden="true">🔥</span><span>今日站队</span></span>
+              <span class="poll-question">韩国股市还会继续崩吗？</span>
+              <button type="button" data-poll-question="korea_market_crash" data-poll-choice="yes">是<span class="poll-count" data-poll-count="korea_market_crash:yes" hidden></span></button>
+              <button type="button" data-poll-question="korea_market_crash" data-poll-choice="no">不是<span class="poll-count" data-poll-count="korea_market_crash:no" hidden></span></button>
+            </span>
+            <span class="poll-divider"></span>
+            <span class="poll-topic poll-topic-secondary">
+              <span class="poll-question">峰哥还会回来吗？</span>
+              <button type="button" data-poll-question="feng_return" data-poll-choice="yes">是<span class="poll-count" data-poll-count="feng_return:yes" hidden></span></button>
+              <button type="button" data-poll-question="feng_return" data-poll-choice="no">不是<span class="poll-count" data-poll-count="feng_return:no" hidden></span></button>
+            </span>
+          </div>
+          <span id="pollToast" class="poll-toast" role="status" aria-live="polite" hidden>已记录</span>
+        </section>
+        <div id="siteBrand" class="site-brand">桃子冰粉.汇金证金及其关联公司持仓追踪</div>
+        <div class="title-row">
+          <h1 id="pageTitle">桃子冰粉.汇金证金及其关联公司持仓追踪</h1>
+          <div class="global-page-controls" aria-label="页面操作">
+            <button id="refreshBtn" type="button" class="secondary" disabled>公开只读</button>
+            <button id="resetZoomBtn" type="button" class="secondary" disabled>复位</button>
+            <button id="themeToggleBtn" type="button" class="secondary theme-toggle" aria-pressed="false">夜间</button>
+          </div>
+          <div class="support-row" aria-label="支持和鸣谢">
+            <div class="featured-thanks" aria-label="特别鸣谢：圣亮">
+              <span class="featured-thanks-label">特别鸣谢</span>
+              <span class="featured-thanks-name">圣亮</span>
+            </div>
+            <div class="thanks-ticker" aria-label="充电鸣谢名单">
+              <span class="thanks-ticker-label">充电鸣谢</span>
+              <div class="thanks-ticker-window">
+                <div class="thanks-ticker-track">
+                  <span>**飞</span>
+                  <span>**鑫</span>
+                  <span>*亮</span>
+                  <span>**钢</span>
+                  <span>*鑫</span>
+                  <span>**珉</span>
+                  <span>**斌</span>
+                  <span>*磊</span>
+                  <span>****鑫</span>
+                  <span>****阳</span>
+                  <span>*石</span>
+                  <span>**君</span>
+                  <span>*翔</span>
+                  <span>**俊</span>
+                  <span>谜漓浅笑</span>
+                  <span>天王盖地虎子</span>
+                  <span>靓仔划水水</span>
+                  <span>pypzthm</span>
+                  <span>重露成涓滴</span>
+                  <span>趋势豆浆</span>
+                  <span>愚人误空</span>
+                  <span>鸣沙山日落</span>
+                  <span>苏门答腊鱼</span>
+                  <span>海盗猫海豹</span>
+                  <span>方少泊</span>
+                  <span>天空一声闷响</span>
+                  <span>健忘的龙大爷</span>
+                  <span>**文</span>
+                  <span>**裕</span>
+                  <span>**阳</span>
+                  <span>*伯</span>
+                  <span>**均</span>
+                  <span>**哲</span>
+                  <span>**刚</span>
+                  <span>**年</span>
+                  <span>*嵩</span>
+                  <span>*岳</span>
+                  <span>**辰</span>
+                  <span>**宇</span>
+                  <span>**冲</span>
+                  <span>**歌</span>
+                  <span>**森</span>
+                  <span>**路</span>
+                  <span>*劲</span>
+                  <span>**军</span>
+                  <span>**桂</span>
+                  <span>*航</span>
+                  <span>*殿</span>
+                  <span>*棘</span>
+                  <span>**波</span>
+                  <span>**亮</span>
+                  <span>**兵</span>
+                  <span>**任</span>
+                  <span>**智</span>
+                  <span>**深</span>
+                  <span>*奇</span>
+                  <span>**栗</span>
+                  <span>**旭</span>
+                  <span>**奇</span>
+                  <span>**昊</span>
+                  <span>**龙</span>
+                  <span>**能</span>
+                  <span>Nugabes</span>
+                  <span>逻辑哥复盘笔记1888</span>
+                  <span>剪辑全明星</span>
+                  <span>Neal本愿</span>
+                  <span>不为离愁</span>
+                  <span>乌鸦少年</span>
+                  <span>lumi鹿鸣</span>
+                  <span>Lonely残翼</span>
+                  <span>趋势为王350267</span>
+                  <span>22Pilots</span>
+                  <span>阿巴阿巴阿巴爸吧</span>
+                  <span>Sean不读seen</span>
+                  <span>徐不谏</span>
+                  <span>Universe138</span>
+                  <span>为了做名真正的绅士</span>
+                  <span>shit6</span>
+                  <span>千千小夏</span>
+                  <span>Kurfytt</span>
+                  <span>许叔</span>
+                  <span>**飞</span>
+                  <span>**鑫</span>
+                  <span>*亮</span>
+                  <span>**钢</span>
+                  <span>*鑫</span>
+                  <span>**珉</span>
+                  <span>**斌</span>
+                  <span>*磊</span>
+                  <span>****鑫</span>
+                  <span>****阳</span>
+                  <span>*石</span>
+                  <span>**君</span>
+                  <span>*翔</span>
+                  <span>**俊</span>
+                  <span>谜漓浅笑</span>
+                  <span>天王盖地虎子</span>
+                  <span>靓仔划水水</span>
+                  <span>pypzthm</span>
+                  <span>重露成涓滴</span>
+                  <span>趋势豆浆</span>
+                  <span>愚人误空</span>
+                  <span>鸣沙山日落</span>
+                  <span>苏门答腊鱼</span>
+                  <span>海盗猫海豹</span>
+                  <span>方少泊</span>
+                  <span>天空一声闷响</span>
+                  <span>健忘的龙大爷</span>
+                  <span>**文</span>
+                  <span>**裕</span>
+                  <span>**阳</span>
+                  <span>*伯</span>
+                  <span>**均</span>
+                  <span>**哲</span>
+                  <span>**刚</span>
+                  <span>**年</span>
+                  <span>*嵩</span>
+                  <span>*岳</span>
+                  <span>**辰</span>
+                  <span>**宇</span>
+                  <span>**冲</span>
+                  <span>**歌</span>
+                  <span>**森</span>
+                  <span>**路</span>
+                  <span>*劲</span>
+                  <span>**军</span>
+                  <span>**桂</span>
+                  <span>*航</span>
+                  <span>*殿</span>
+                  <span>*棘</span>
+                  <span>**波</span>
+                  <span>**亮</span>
+                  <span>**兵</span>
+                  <span>**任</span>
+                  <span>**智</span>
+                  <span>**深</span>
+                  <span>*奇</span>
+                  <span>**栗</span>
+                  <span>**旭</span>
+                  <span>**奇</span>
+                  <span>**昊</span>
+                  <span>**龙</span>
+                  <span>**能</span>
+                  <span>Nugabes</span>
+                  <span>逻辑哥复盘笔记1888</span>
+                  <span>剪辑全明星</span>
+                  <span>Neal本愿</span>
+                  <span>不为离愁</span>
+                  <span>乌鸦少年</span>
+                  <span>lumi鹿鸣</span>
+                  <span>Lonely残翼</span>
+                  <span>趋势为王350267</span>
+                  <span>22Pilots</span>
+                  <span>阿巴阿巴阿巴爸吧</span>
+                  <span>Sean不读seen</span>
+                  <span>徐不谏</span>
+                  <span>Universe138</span>
+                  <span>为了做名真正的绅士</span>
+                  <span>shit6</span>
+                  <span>千千小夏</span>
+                  <span>Kurfytt</span>
+                  <span>许叔</span>
+                </div>
+              </div>
+            </div>
+            <button id="tipButton" class="tip-button" type="button" aria-haspopup="dialog" aria-expanded="false">
+              <span class="tip-button-mark">¥</span>
+              <span>请桃子冰粉喝奶茶</span>
+            </button>
+          </div>
+        </div>
+        <div class="meta-line" id="metaLine">读取数据中</div>
+        <section id="quickFeedback" class="quick-feedback top-feedback" aria-label="一键反馈">
+          <div class="mobile-feedback-triggers" aria-label="手机端互动入口">
+            <button id="feedbackToggleBtn" class="mobile-feedback-trigger" type="button" aria-expanded="false" aria-controls="feedbackActionGroup">反馈</button>
+            <button id="featurePollToggleBtn" class="mobile-feedback-trigger" type="button" aria-expanded="false" aria-controls="featurePollGroup">下个功能上什么？</button>
+          </div>
+          <span id="feedbackActionGroup" class="quick-feedback-group feedback-action-group">
+            <span class="quick-feedback-label">反馈</span>
+            <button type="button" data-feedback="useful">有用</button>
+            <button type="button" data-feedback="confusing">看不懂</button>
+            <button type="button" data-feedback="data_question">数据疑问</button>
+            <button type="button" data-feedback="explain_more">想看解释</button>
+            <button id="questionBoxButton" class="question-box-button" type="button" aria-haspopup="dialog" aria-expanded="false">提问箱</button>
+            <span id="feedbackToast" class="feedback-toast" role="status" aria-live="polite" hidden>收到，感谢反馈</span>
+          </span>
+          <span class="quick-feedback-divider"></span>
+          <span id="featurePollGroup" class="quick-feedback-group feature-poll-group">
+            <span class="quick-feedback-label feature-poll-label">下个功能上什么？</span>
+            <span id="featurePollToast" class="feature-poll-toast" role="status" aria-live="polite" hidden>已记录</span>
+            <button type="button" data-poll-question="next_feature" data-poll-choice="stock_index_futures">股指期货</button>
+            <button type="button" data-poll-question="next_feature" data-poll-choice="insurance_etf_holding">险资ETF持仓</button>
+            <button type="button" data-poll-question="next_feature" data-poll-choice="deposit_migration_account_opening">存款搬家&开户指标</button>
+            <button type="button" data-poll-question="next_feature" data-poll-choice="fund_cluster_ambush">基金抱团/打埋伏追踪</button>
+            <button type="button" data-poll-question="next_feature" data-poll-choice="other" data-poll-action="open-feature-question">其他</button>
+          </span>
+        </section>
+      </div>
+      <div class="toolbar topbar-toolbar">
+        <select id="groupSelect" aria-label="ETF 分组"></select>
+        <select id="etfSelect" aria-label="ETF"></select>
+      </div>
+    </header>
+
+    <nav class="mobile-view-switch" aria-label="手机视图切换">
+      <button id="mobileChartsTab" type="button" class="is-active">主图</button>
+      <button id="mobileTrendTab" type="button">趋势追踪</button>
+    </nav>
+
+    <section class="dashboard-grid">
+      <aside class="etf-rail" aria-label="ETF 列表">
+        <div id="etfList" class="etf-list"></div>
+      </aside>
+
+      <section class="main-stage" aria-label="ETF 日度图主视图">
+        <section class="summary-grid" aria-label="最新数据摘要">
+          <div class="summary-item"><span class="metric-label">最新日期 <button class="help-trigger" type="button" data-help="summary.latestDate" aria-label="说明：最新日期">?</button></span><strong id="mDate">-</strong></div>
+          <div class="summary-item"><span id="mPriceLabel" class="metric-label">前复权价 <button class="help-trigger" type="button" data-help="summary.price" aria-label="说明：前复权价">?</button></span><strong id="mPrice">-</strong></div>
+          <div class="summary-item"><span id="mTurnoverLabel" class="metric-label">复权成交额 <button class="help-trigger" type="button" data-help="summary.turnover" aria-label="说明：复权成交额">?</button></span><strong id="mTurnover">-</strong></div>
+          <div class="summary-item"><span id="mSharesLabel" class="metric-label">复权份额 <button class="help-trigger" type="button" data-help="summary.shares" aria-label="说明：复权份额">?</button></span><strong id="mShares">-</strong></div>
+          <div class="summary-item"><span id="mHoldingRatioLabel" class="metric-label">最新披露持仓比例 <button class="help-trigger" type="button" data-help="summary.holdingRatio" aria-label="说明：最新披露持仓比例">?</button></span><strong id="mHoldingRatio">-</strong></div>
+          <div class="summary-item"><span id="mHoldingValueLabel" class="metric-label">最新披露持仓金额 <button class="help-trigger" type="button" data-help="summary.holdingValue" aria-label="说明：最新披露持仓金额">?</button></span><strong id="mHoldingValue">-</strong></div>
+        </section>
+        <section id="rangeSummaryStrip" class="range-summary-strip" aria-label="累计摘要和快捷缩放"></section>
+        <section class="date-range-panel" aria-label="显示日期区间">
+          <label>
+            <span>开始</span>
+            <input id="dateStartInput" type="date" />
+          </label>
+          <label>
+            <span>结束</span>
+            <input id="dateEndInput" type="date" />
+          </label>
+          <button id="applyDateRangeBtn" type="button">应用</button>
+          <button id="fullDateRangeBtn" type="button" class="secondary">全区间</button>
+        </section>
+        <section class="time-scroll-panel" aria-label="图表时间位置">
+          <div class="time-scroll-head">
+            <span id="timeScrollLabel">全区间</span>
+            <div class="time-scroll-actions">
+              <button id="tooltipToggleBtn" type="button" class="secondary tooltip-toggle" aria-pressed="true">关闭悬浮窗</button>
+              <button id="scrollLatestBtn" type="button" class="secondary">最新</button>
+            </div>
+          </div>
+          <div id="timeScrollTrack" class="time-scroll-track" role="group" aria-label="拖动左右边界或中间区域调整时间窗口">
+            <div id="timeScrollWindow" class="time-scroll-window">
+              <button id="timeHandleStart" class="time-scroll-handle time-scroll-handle-start" type="button" aria-label="调整开始日期"></button>
+              <button id="timeHandleEnd" class="time-scroll-handle time-scroll-handle-end" type="button" aria-label="调整结束日期"></button>
+            </div>
+          </div>
+        </section>
+
+        <section class="chart-stack" aria-label="五联日度图">
+          <div class="chart" data-chart="price"><svg role="img" aria-label="日线价格走势"></svg></div>
+          <div class="chart" data-chart="turnover"><svg role="img" aria-label="日度 ETF 成交额"></svg></div>
+          <div class="chart" data-chart="shares"><svg role="img" aria-label="日线 ETF 份额走势"></svg></div>
+          <div class="chart" data-chart="flow"><svg role="img" aria-label="日度 ETF 申购赎回份额"></svg></div>
+          <div class="chart" data-chart="flowImpact"><svg role="img" aria-label="净申购金额占指数成交额"></svg></div>
+          <section id="marginChartPanel" class="margin-chart-panel" aria-label="融资余额同图对比" hidden>
+            <div class="margin-chart" data-margin-chart="combined"><svg role="img" aria-label="融资余额同图对比"></svg></div>
+          </section>
+          <div id="tooltip" class="tooltip" role="status" aria-live="polite"></div>
+        </section>
+      </section>
+
+      <aside class="trend-panel" id="trendPanel" aria-label="最近一周趋势看板">
+        <div class="section-head">
+          <div>
+            <h2 id="trendTitle">最近一周趋势</h2>
+            <div class="meta-line" id="trendMeta">读取趋势表中</div>
+          </div>
+          <button id="trendPopoutBtn" class="secondary trend-popout-btn" type="button" aria-expanded="false">展开</button>
+        </div>
+        <section class="trend-range-panel" aria-label="趋势表日期区间">
+          <label>
+            <span>开始</span>
+            <input id="trendStartInput" type="date" />
+          </label>
+          <label>
+            <span>结束</span>
+            <input id="trendEndInput" type="date" />
+          </label>
+          <button id="applyTrendRangeBtn" type="button">应用</button>
+          <button id="trendRecentBtn" type="button" class="secondary">最近一周</button>
+        </section>
+        <section id="trendAggregateSummary" class="trend-aggregate-summary" aria-label="合计摘要" hidden></section>
+        <div class="trend-table-wrap">
+          <table id="trendTable" class="trend-table">
+            <thead>
+              <tr id="trendTableHead">
+                <th><span class="table-head-label">ETF / 合计 <button class="help-trigger" type="button" data-help="trend.entity" aria-label="说明：ETF / 合计">?</button></span></th>
+                <th><span class="table-head-label">日期 <button class="help-trigger" type="button" data-help="trend.date" aria-label="说明：日期">?</button></span></th>
+                <th><span class="table-head-label">价格变动 <button class="help-trigger" type="button" data-help="trend.priceChange" aria-label="说明：价格变动">?</button></span></th>
+                <th><span class="table-head-label">成交额 <button class="help-trigger" type="button" data-help="trend.turnover" aria-label="说明：成交额">?</button></span></th>
+                <th><span class="table-head-label">成交额分位 <button class="help-trigger" type="button" data-help="trend.turnoverPercentile" aria-label="说明：成交额分位">?</button></span></th>
+                <th><span class="table-head-label">净份额变动 <button class="help-trigger" type="button" data-help="trend.deltaUnits" aria-label="说明：净份额变动">?</button></span></th>
+                <th><span class="table-head-label">净份额分位 <button class="help-trigger" type="button" data-help="trend.deltaPercentile" aria-label="说明：净份额分位">?</button></span></th>
+                <th><span class="table-head-label">净申赎金额 <button class="help-trigger" type="button" data-help="trend.flowAmount" aria-label="说明：净申赎金额">?</button></span></th>
+                <th><span class="table-head-label">净申赎/指数成交额 <button class="help-trigger" type="button" data-help="trend.flowImpact" aria-label="说明：净申赎/指数成交额">?</button></span></th>
+              </tr>
+            </thead>
+            <tbody id="trendTableBody">
+              <tr><td colspan="9">读取中</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </aside>
+      <div id="trendBackdrop" class="trend-backdrop" hidden></div>
+    </section>
+
+    <div class="status-line" id="statusLine"></div>
+
+    <p class="copyright-line" aria-label="版权声明">
+      <span>指数数据观察笔记 · 作者：桃子冰粉 · Copyright © 2026. All rights reserved.</span>
+      <span>本站仅展示公开数据与个人研究记录，不构成投资建议。</span>
+    </p>
+  </main>
+  <div id="tipBackdrop" class="tip-backdrop" hidden></div>
+  <section id="tipDialog" class="tip-dialog" role="dialog" aria-modal="true" aria-labelledby="tipDialogTitle" hidden>
+    <div class="tip-card">
+      <button id="tipCloseBtn" class="secondary tip-close" type="button">关闭</button>
+      <div class="tip-kicker">请桃子冰粉喝奶茶</div>
+      <h2 id="tipDialogTitle"><span class="tip-title-default">谢谢你的奶茶</span><span class="tip-title-mobile">谢谢你的奶茶！</span></h2>
+      <div id="tipMobilePay" class="tip-mobile-pay" aria-label="随缘支持">
+        <button id="tipMobilePayBtn" class="tip-mobile-pay-button" type="button">去支付宝请杯奶茶</button>
+        <div id="tipMobilePayStatus" class="tip-mobile-pay-status" role="status" aria-live="polite"></div>
+        <button id="tipQrFallbackBtn" class="tip-qr-fallback" type="button" aria-expanded="false">我还是想扫码</button>
+      </div>
+      <div id="tipQrPanel" class="tip-qr-panel">
+        <p>
+          <span class="tip-default-note">数据免费公开，喜欢的话可以用支付宝扫一扫支持一下。</span>
+          <span class="tip-mobile-note">长按保存二维码，再用支付宝扫一扫识别。</span>
+        </p>
+        <img class="tip-qr" src="static/assets/alipay_tip_qr.png" alt="支付宝请桃子冰粉喝奶茶收款码" loading="lazy" />
+      </div>
+    </div>
+  </section>
+  <div id="helpBackdrop" class="help-backdrop" hidden></div>
+  <section id="helpPanel" class="help-panel" role="dialog" aria-modal="false" aria-labelledby="helpTitle" hidden>
+    <button id="helpCloseBtn" class="help-close" type="button" aria-label="关闭指标说明">×</button>
+    <h2 id="helpTitle">指标说明</h2>
+    <p id="helpBody"></p>
+  </section>
+  <div id="questionBackdrop" class="question-backdrop" hidden></div>
+  <section id="questionDialog" class="question-dialog" role="dialog" aria-modal="true" aria-labelledby="questionDialogTitle" hidden>
+    <div class="question-card">
+      <button id="questionCloseBtn" class="secondary question-close" type="button">关闭</button>
+      <div class="question-kicker">提问箱</div>
+      <h2 id="questionDialogTitle">给桃子递小纸条</h2>
+      <div id="questionCategoryList" class="question-category-list" role="radiogroup" aria-label="问题类型">
+        <button type="button" class="is-selected" data-question-category="data_correction" aria-pressed="true">数据纠错</button>
+        <button type="button" data-question-category="indicator_explain" aria-pressed="false">指标解释</button>
+        <button type="button" data-question-category="feature_request" aria-pressed="false">想看功能</button>
+        <button type="button" data-question-category="ticker_request" aria-pressed="false">想看标的</button>
+        <button type="button" data-question-category="other" aria-pressed="false">其他建议</button>
+      </div>
+      <label class="question-field">
+        <span>想说点啥</span>
+        <textarea id="questionText" rows="4" maxlength="300" placeholder="写一句就行"></textarea>
+      </label>
+      <div class="question-actions">
+        <span id="questionStatus" class="question-status" role="status" aria-live="polite"></span>
+        <button id="questionSubmitBtn" type="button">发送</button>
+      </div>
+    </div>
+  </section>
+  <script src="static/app.js?v=52c8e50de8bf"></script>
+</body>
+</html>

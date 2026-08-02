@@ -1,0 +1,100 @@
+contract_version: 1.0.0
+namespace: reference
+updated_at: 2026-08-02
+purpose: 仅用于复刻参考网站与对照验证，不作为Canonical研究真值
+
+metrics:
+  - id: reference_qfq_close
+    chinese_name: 参考站前复权收盘价
+    definition: 腾讯前复权K线收盘价
+    formula: tencent_fqkline.close
+    data_source: TENCENT_QUOTES
+    unit: 元
+    is_estimate: false
+    time_availability: T日15:00后
+    model_eligible: false
+    test_cases: ["与参考站etf_qfq_close逐日一致"]
+
+  - id: reference_turnover_est
+    chinese_name: 参考站估算成交额
+    definition: typical_price×成交量×手数倍数
+    formula: "((H+L+C)/3) × volume × 100 / 1e8"
+    data_source: TENCENT_QUOTES
+    unit: 亿元
+    is_estimate: true
+    time_availability: T日15:00后
+    model_eligible: false
+    test_cases: ["510300 2026-07-31 估算=70.1259亿(已复算REPRODUCED EV025)"]
+
+  - id: reference_adjusted_shares
+    chinese_name: 参考站复权份额
+    definition: 交易所总份额按调整事件换算到当前单位基准
+    formula: exchange_total_shares × adjustment_factors
+    data_source: 份额源(待定)
+    unit: 亿份
+    is_estimate: false
+    time_availability: T+1保守
+    model_eligible: false
+    test_cases: ["与参考站qfq_total_units_yi一致(510300=264.6679亿份)"]
+
+  - id: reference_delta_adjusted_shares
+    chinese_name: 参考站净份额变化
+    definition: 复权份额差分
+    formula: adjusted_shares_t - adjusted_shares_prev
+    data_source: 份额源(待定)
+    unit: 亿份
+    is_estimate: false
+    time_availability: T+1保守
+    model_eligible: false
+
+  - id: reference_estimated_primary_market_flow_avg_price
+    chinese_name: 参考均价口径估算一级市场净申赎规模
+    definition: 复权份额变化×参考均价
+    formula: reference_delta_adjusted_shares × avg_price_est
+    data_source: 份额源+TENCENT
+    unit: 亿元
+    is_estimate: true
+    time_availability: T+1保守
+    model_eligible: false
+    test_cases: ["510300 2026-07-30 delta=5.364亿份×4.67≈25.05亿"]
+
+  - id: reference_flow_impact
+    chinese_name: 净申赎/指数成交额
+    definition: 净申赎金额占指数成交额比例
+    formula: flow_amount / vendor_index_turnover × 100
+    data_source: SOHU_HISQ
+    unit: "%"
+    is_estimate: true
+    time_availability: T+1保守
+    model_eligible: false
+
+  - id: reference_aggregate_holding_ratio
+    chinese_name: 参考站合计持仓比例
+    definition: 按披露金额与比例倒推规模加权
+    formula: "Σ(金额) / Σ(金额/(比例/100)) × 100"
+    data_source: FUND_DISCLOSURE
+    unit: "%"
+    is_estimate: false
+    time_availability: 披露日
+    model_eligible: false
+
+  - id: reference_index_close
+    chinese_name: 参考站指数收盘点位
+    definition: 分组合计展示对应指数真实收盘点位
+    formula: vendor_index_close
+    data_source: SOHU_HISQ
+    unit: 点
+    is_estimate: false
+    time_availability: T日
+    model_eligible: false
+
+  - id: reference_vendor_index_turnover
+    chinese_name: 参考站供应商指数成交额
+    definition: 搜狐指数成交额(万元→亿元)
+    formula: sohu_amount_wan / 10000
+    data_source: SOHU_HISQ
+    unit: 亿元
+    is_estimate: false
+    time_availability: T日
+    model_eligible: false
+    semantic_note: 语义未验证(成分口径/跨市场/加工)，仅供应商字段

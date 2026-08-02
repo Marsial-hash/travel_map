@@ -1,0 +1,6 @@
+institution_id,official_name,historical_name,institution_type,valid_from,valid_to,source,verification_status
+INST-001,中央汇金投资有限责任公司,,中央汇金,2003-12-16,,MANUAL_REGISTRY,UNVERIFIED
+INST-002,中央汇金资产管理有限责任公司,,中央汇金,2015-01-01,,MANUAL_REGISTRY,UNVERIFIED
+INST-003,中国证券金融股份有限公司,,证金公司,2011-10-28,,MANUAL_REGISTRY,UNVERIFIED
+INST-004,国新投资有限公司,,国新,2015-01-01,,MANUAL_REGISTRY,UNVERIFIED
+INST-005,中国诚通控股集团有限公司（诚通金控）,,诚通,2006-01-01,,MANUAL_REGISTRY,UNVERIFIED

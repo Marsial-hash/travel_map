@@ -1,0 +1,39 @@
+contract_version: 1.0.0
+updated_at: 2026-08-02
+
+datasets:
+  - dataset_id: etf_daily_market
+    chinese_name: ETF日度行情
+    fields: [trade_date, internal_instrument_id, open, high, low, close, volume, turnover_amount, source, units, time_fields*, quality, raw_hash]
+    sources: [TENCENT_QUOTES, SZSE_RT, SOHU_HISQ]
+
+  - dataset_id: etf_daily_nav
+    chinese_name: ETF日度净值
+    fields: [trade_date, internal_instrument_id, nav, cumulative_nav, source, time_fields*, quality]
+    sources: [EM_NAV, FUND_MANAGER_WEBSITE]
+
+  - dataset_id: etf_daily_share_observation
+    chinese_name: ETF日度份额观测
+    fields: [trade_date, internal_instrument_id, raw_total_shares, share_unit, source, source_record_semantics, is_observed_record, time_fields*, quality, raw_hash]
+    sources: [TUSHARE_FUND_SHARE, JISILU, EXCHANGE]
+
+  - dataset_id: etf_share_adjustment_event
+    chinese_name: ETF份额调整事件
+    fields: [event_candidate_id, internal_instrument_id, event_date, event_type, adjustment_factor, official_evidence_found, official_document, verification_status, reviewer]
+    event_types: [SHARE_UNIT_REBASE, SHARE_SPLIT, SHARE_CONSOLIDATION, FUND_MERGER, FUND_CONVERSION, CODE_CHANGE, NAME_CHANGE, BENCHMARK_CHANGE, CASH_DISTRIBUTION, LISTING_STATUS_CHANGE, CREATION_REDEMPTION_RULE_CHANGE, UNKNOWN_EVENT]
+
+  - dataset_id: etf_daily_flow
+    chinese_name: ETF日度流量估算
+    fields: [trade_date, internal_instrument_id, canonical_economic_delta_shares, estimated_flow_nav, estimated_flow_close, daily_flow_eligible, economic_flow_eligible, nav_flow_eligible, close_flow_eligible, flow_block_reason, flow_estimation_method, is_cash_flow_observed, is_share_based_estimate]
+    gating: daily_flow_eligible AND economic_flow_eligible
+
+  - dataset_id: index_daily_market
+    chinese_name: 指数日度行情
+    fields: [trade_date, index_key, index_close, vendor_reported_index_turnover, canonical_index_turnover, source, semantic_status]
+    sources: [SOHU_HISQ, TUSHARE_INDEX, CSINDEX]
+
+  - dataset_id: institution_etf_disclosure
+    chinese_name: 机构ETF持仓披露
+    fields: [institution_id, internal_instrument_id, report_period, disclosure_date, held_shares, holding_ratio, holding_value, pdf_path, pdf_hash, page_no, raw_text, review_status, research_available_at]
+
+time_fields_note: 每个数据集含 event_time/trade_date/source_published_at/source_observed_at/research_available_at/first_seen_at/ingested_at/revised_at

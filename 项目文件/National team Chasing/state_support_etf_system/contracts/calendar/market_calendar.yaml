@@ -1,0 +1,38 @@
+contract_version: 1.0.0
+updated_at: 2026-08-02
+timezone: Asia/Shanghai
+
+market_calendar:
+  fields:
+    - exchange
+    - calendar_date
+    - is_open
+    - previous_open_date
+    - next_open_date
+    - source
+    - calendar_version
+    - system_valid_from
+    - system_valid_to
+  next_open_date_rule: "派生字段: lead(calendar_date) over 开放日序列; 记 next_open_date_calculation_version"
+  sources:
+    - TUSHARE_TRADE_CAL (首选, 提供 exchange/cal_date/is_open/pretrade_date)
+    - PUBLIC_CALENDAR (备用)
+
+market_session_calendar:
+  fields:
+    - exchange
+    - valid_from
+    - valid_to
+    - timezone
+    - pre_open_auction_start: "09:15"
+    - pre_open_auction_end: "09:25"
+    - morning_session_start: "09:30"
+    - morning_session_end: "11:30"
+    - afternoon_session_start: "13:00"
+    - afternoon_session_end: "15:00"
+    - closing_auction_start: "14:57"
+    - closing_auction_end: "15:00"
+
+rules:
+  - SSE与SZSE分开拉取，对账后再建共享A股日历视图
+  - 禁止自然日加一；T+1/T+2/gap/open_session_distance/NEXT_DAY_OPEN全部依赖日历

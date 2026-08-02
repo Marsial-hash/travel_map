@@ -1,0 +1,35 @@
+contract_version: 1.0.0
+updated_at: 2026-08-02
+note: Phase 0B期间前端仅保留接口契约占位；完整API在Phase 1A-R实现
+
+endpoints:
+  - path: /api/v1/health
+    method: GET
+    description: 健康检查
+    response: {status: string}
+
+  - path: /api/v1/etfs
+    method: GET
+    description: ETF列表（Reference Universe）
+    params: [group]
+    response: [{code, name, exchange, display_group, dashboard_eligible}]
+
+  - path: /api/v1/etfs/{code}/series
+    method: GET
+    description: ETF序列（行情/份额/流量）
+    params: [namespace: reference|canonical, start, end]
+    response: {meta, series[], disclosures[]}
+
+  - path: /api/v1/quality/issues
+    method: GET
+    description: 数据质量中心
+    response: [data_quality_issues]
+
+  - path: /api/v1/datasources
+    method: GET
+    description: 数据源状态矩阵
+    response: [data_source_status]
+
+security:
+  - Token不暴露于任何API响应
+  - Token状态仅返回布尔

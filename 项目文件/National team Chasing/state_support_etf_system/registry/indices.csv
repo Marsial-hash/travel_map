@@ -1,0 +1,17 @@
+index_key,index_code,index_name,display_group,has_trend_mapping,source
+hs300,000300,沪深300,宽基/沪深300,true,EV004/EV005/EV002-trendGroupMap
+sse50,000016,,宽基/上证50,true,EV004/EV005/EV002-trendGroupMap
+sse180,000010,,宽基/上证180,true,EV004/EV005/EV002-trendGroupMap
+csi500,000905,,宽基/中证500,true,EV004/EV005/EV002-trendGroupMap
+csi800,000906,,宽基/中证800,true,EV004/EV005/EV002-trendGroupMap
+csi1000,000852,,宽基/中证1000,true,EV004/EV005/EV002-trendGroupMap
+chinext,399006,,宽基/创业板,true,EV004/EV005/EV002-trendGroupMap
+star50,000688,,宽基/科创50,true,EV004/EV005/EV002-trendGroupMap
+sz100,399330,,宽基/深证100,true,EV004/EV005/EV002-trendGroupMap
+,,,宽基/MSCI中国A50,false,EV004/EV005/EV002-trendGroupMap
+,,,金融/稳定权重,false,EV004/EV005/EV002-trendGroupMap
+,,,成长/制造/科技,false,EV004/EV005/EV002-trendGroupMap
+,,,消费/医药,false,EV004/EV005/EV002-trendGroupMap
+,,,跨境/海外,false,EV004/EV005/EV002-trendGroupMap
+,,,货币/现金ETF,false,EV004/EV005/EV002-trendGroupMap
+,,,周期/资源,false,EV004/EV005/EV002-trendGroupMap
