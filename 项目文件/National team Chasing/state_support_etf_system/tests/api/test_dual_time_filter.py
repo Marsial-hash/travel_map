@@ -18,7 +18,11 @@ class TestDualTimeFiltering:
         # 直接读 flow 表验证 research_available_at 过滤逻辑
         f = pl.read_parquet("warehouse/canonical/phase1a_c/canonical_etf_flow_daily_510300.parquet")
         # 找一条 2020 年的记录
-        r2020 = f.filter(pl.col("trade_date") >= "2020-01-01").filter(pl.col("trade_date") <= "2020-12-31").head(1)
+        r2020 = (
+            f.filter(pl.col("trade_date") >= date(2020, 1, 1))
+            .filter(pl.col("trade_date") <= date(2020, 12, 31))
+            .head(1)
+        )
         if r2020.is_empty():
             pytest.skip("无2020记录")
         # knowledge 过滤不删除该记录（research_available_at 在 knowledge 之前）
@@ -47,7 +51,7 @@ class TestDualTimeFiltering:
         filtered = f.filter(pl.col("research_available_at") <= date(2015, 1, 1))
         earliest = filtered["trade_date"].min() if not filtered.is_empty() else None
         # 早于 2015-01-01 knowledge 时不应有记录（T+2 政策）
-        assert earliest is None or earliest >= "2015-01-05"
+        assert earliest is None or earliest >= date(2015, 1, 5)
 
     def test_scenario7_missing_timezone_422(self) -> None:
         """场景7: 缺时区返回 422。"""

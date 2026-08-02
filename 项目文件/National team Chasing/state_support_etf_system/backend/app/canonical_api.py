@@ -13,6 +13,8 @@ import polars as pl
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
+from data_pipeline.execution.dual_time import PublicationManager
+
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 CANON_DIR = PROJECT_ROOT / "warehouse" / "canonical" / "phase1a_c"
 
@@ -74,10 +76,37 @@ def flows(
     system_as_of_timestamp: str | None = None,
     dataset_version: str | None = None,
 ) -> dict[str, Any]:
-    """份额流量 + 双时间真实过滤。knowledge 必须显式传入。"""
+    """份额流量 + 双时间真实过滤 + 数据集版本选择（R-04）。"""
     k_as_of = require_tz(knowledge_as_of_timestamp, "knowledge_as_of_timestamp")
+    s_as_of = require_tz(system_as_of_timestamp, "system_as_of_timestamp")
     if knowledge_as_of_timestamp is None:
         raise HTTPException(status_code=422, detail="knowledge_as_of_timestamp is required (must be explicit)")
+    # 数据集版本选择（system time / 显式版本）
+    pm = PublicationManager()
+    resolved_version = dataset_version
+    if resolved_version is None:
+        # system time: 选择 published_at <= system_as_of 的最新 PUBLISHED 版本
+        latest = pm.latest_published("canonical_etf_flow_daily", s_as_of)
+        if latest is None:
+            resolved_version = None
+        else:
+            resolved_version = latest.dataset_version
+    else:
+        # 显式版本：校验 PUBLISHED 且发布时间 <= system_as_of
+        versions = [v for v in pm._versions if v.dataset_version == dataset_version]
+        if not versions:
+            raise HTTPException(status_code=404, detail=f"dataset_version {dataset_version} not found")
+        v = versions[0]
+        if v.publication_status != "PUBLISHED":
+            raise HTTPException(
+                status_code=403,
+                detail="dataset_version not PUBLISHED (STAGING/FAILED/QUARANTINED not readable)",
+            )
+        if s_as_of is not None and v.published_at > s_as_of:
+            raise HTTPException(
+                status_code=409,
+                detail="DATASET_VERSION_NOT_YET_PUBLISHED_AT_SYSTEM_TIME",
+            )
     df = load_published("canonical_etf_flow_daily")
     if df is None:
         return {"instrument_id": instrument_id, "rows": [], "dataset_version": None}
@@ -107,7 +136,7 @@ def flows(
     return {
         "instrument_id": instrument_id,
         "rows": rows,
-        "dataset_version": dataset_version or "published-v1",
+        "dataset_version": resolved_version,
         "knowledge_as_of": knowledge_as_of_timestamp,
         "system_as_of": system_as_of_timestamp or datetime.now(UTC).isoformat(),
         "source": "TUSHARE_FUND_SHARE",

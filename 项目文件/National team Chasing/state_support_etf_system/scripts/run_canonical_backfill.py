@@ -28,8 +28,13 @@ from data_pipeline.execution.canonical_flow import (  # noqa: E402
     EventContaminationStatus,
     evaluate_flow_gate,
 )
+from data_pipeline.execution.dual_time import PublicationManager  # noqa: E402
 from data_pipeline.execution.watermark import WatermarkStatus, WatermarkTracker  # noqa: E402
 from data_pipeline.normalization.master_data import resolve_instrument  # noqa: E402
+from data_pipeline.normalization.remediation import (  # noqa: E402
+    build_share_daily_with_semantics,
+    load_calendar_open_dates,
+)
 from data_pipeline.validation.data_quality import DQTracker  # noqa: E402
 
 ETFS = ["510300", "510310", "159919", "510050", "510500", "159845"]
@@ -146,17 +151,19 @@ def build_canonical_flow(
     if share_daily.is_empty():
         return pl.DataFrame()
     cal_raw = calendar.filter(pl.col("is_open") == 1).get_column("cal_date").to_list()
-    # 归一化为 YYYY-MM-DD
-    cal_dates = [f"{d[:4]}-{d[4:6]}-{d[6:]}" for d in cal_raw]
+    # 归一化为 date 类型
+    cal_dates = [date.fromisoformat(f"{d[:4]}-{d[4:6]}-{d[6:]}") for d in cal_raw]
     cal_set = set(cal_dates)
 
     # 份额逐日差分（用真实日历判断连续性）
-    shares = share_daily.sort("date")
+    shares = share_daily.sort("trade_date")
     rows = []
-    prev_date: str | None = None
+    prev_date: date | None = None
     prev_share: int | None = None
     for r in shares.iter_rows(named=True):
-        d = r["date"]
+        d = r["trade_date"]
+        if isinstance(d, str):
+            d = date.fromisoformat(d)
         raw = r["raw_total_shares"]
         # 计算 open_session_distance / missing_open_session_count
         distance = 0
@@ -176,7 +183,7 @@ def build_canonical_flow(
 
         # 事件污染判断：仅 510300 的未解决跳变（Canonical源自身出现异常时才阻断）
         contam = EventContaminationStatus.CLEAN
-        if d in unresolved_jump_dates:
+        if d.isoformat() in unresolved_jump_dates:
             contam = EventContaminationStatus.UNRESOLVED_SHARE_JUMP
 
         # raw delta
@@ -186,7 +193,7 @@ def build_canonical_flow(
             raw_delta = _D2(str(raw - prev_share))
 
         # NAV / Close 输入（fund_nav 用 nav_date YYYYMMDD, fund_daily 用 trade_date YYYYMMDD）
-        d_compact = d.replace("-", "")
+        d_compact = d.strftime("%Y%m%d")
         nav_row = nav_daily.filter(pl.col("nav_date") == d_compact)
         mkt_row = market_daily.filter(pl.col("trade_date") == d_compact)
         from decimal import Decimal as _D
@@ -221,7 +228,22 @@ def build_canonical_flow(
         prev_date = d
         prev_share = raw
 
-    return pl.DataFrame([{**r.__dict__, "code": code} for r in rows])
+    # R-04: 计算 research_available_at（fund_share V1 保守政策 T+2 09:30）
+    out = pl.DataFrame([{**r.__dict__, "code": code} for r in rows])
+    if not out.is_empty():
+        # 逐行计算 T+2 开放日（cal_dates 已是 date 类型）
+        cal_date_objs = cal_dates
+        ra_rows = []
+        for r in out.iter_rows(named=True):
+            d = r["trade_date"]
+            if isinstance(d, str):
+                d = date.fromisoformat(d)
+            idx = next((i for i, x in enumerate(cal_date_objs) if x >= d), None)
+            ra = cal_date_objs[idx + 2] if (idx is not None and idx + 2 < len(cal_date_objs)) else d
+            r["research_available_at"] = ra
+            ra_rows.append(r)
+        out = pl.DataFrame(ra_rows)
+    return out
 
 
 def run_backfill(etfs: list[str], start: str, end: str) -> dict[str, Any]:
@@ -295,11 +317,18 @@ def run_backfill(etfs: list[str], start: str, end: str) -> dict[str, Any]:
         nav_path.write_text(json.dumps(nav.to_dicts(), ensure_ascii=False, default=str), encoding="utf-8")
         print(f"  nav rows={len(nav)}")
 
-        # Normalized 层
-        share_daily = build_canonical_share_daily(raw_share, calendar, code)
+        # Normalized 层（R-02: 使用修复版语义分层）
+        open_dates_list = load_calendar_open_dates()
+        share_daily, nontrading_obs, sem_by_year = build_share_daily_with_semantics(raw_share, open_dates_list, code)
         if not share_daily.is_empty():
             share_daily.write_parquet(
                 norm_dir / f"normalized_etf_share_observation_{code}.parquet"
+            )
+        if not nontrading_obs.is_empty():
+            nontrading_obs.write_parquet(norm_dir / f"normalized_nontrading_share_observation_{code}.parquet")
+        if not sem_by_year.is_empty():
+            sem_by_year.write_parquet(
+                PROJECT_ROOT / "warehouse" / "metadata" / "phase1a_c_share_semantics_by_year.parquet"
             )
         if not market.is_empty():
             market.write_parquet(norm_dir / f"normalized_etf_market_daily_{code}.parquet")
@@ -320,7 +349,7 @@ def run_backfill(etfs: list[str], start: str, end: str) -> dict[str, Any]:
             )
             canon_market.write_parquet(canon_dir / f"canonical_etf_market_daily_{code}.parquet")
         if not share_daily.is_empty():
-            share_daily.rename({"date": "trade_date"}).write_parquet(
+            share_daily.write_parquet(
                 canon_dir / f"canonical_etf_share_daily_{code}.parquet"
             )
         if not nav.is_empty():
@@ -382,6 +411,39 @@ def run_backfill(etfs: list[str], start: str, end: str) -> dict[str, Any]:
     results["dq_summary"] = dq.summary()
     results["dq_path"] = str(dq_path.relative_to(PROJECT_ROOT))
 
+    # R-03: 原子发布（STAGING → VALIDATING → PUBLISHED）
+    pm = PublicationManager()
+    dataset_name = "canonical_etf_flow_daily"
+    version = pm.start_version(dataset_name)
+    results["dataset_version"] = version
+    results["dataset_version_status"] = "STAGING"
+    # VALIDATING：DQ 检查（有 MAJOR 但仅单日阻断 → 允许继续）
+    # PUBLISHED：全部 ETF 有 flow 且无 CRITICAL
+    has_critical = results["dq_summary"].get("CRITICAL", 0) > 0
+    all_flow_present = all(
+        (canon_dir / f"canonical_etf_flow_daily_{code}.parquet").exists() for code in etfs
+    )
+    if has_critical:
+        pm.mark(version, "FAILED")
+        results["dataset_version_status"] = "FAILED"
+    elif not all_flow_present:
+        pm.mark(version, "QUARANTINED")
+        results["dataset_version_status"] = "QUARANTINED"
+    else:
+        fingerprint = pm.fingerprint(all_flow_frames)
+        pm.mark(version, "PUBLISHED", fingerprint=fingerprint)
+        results["dataset_version_status"] = "PUBLISHED"
+        results["dataset_fingerprint"] = fingerprint
+    # 不可变快照：记录 dataset_version_membership
+    if all_flow_frames:
+        membership = pl.concat(all_flow_frames)
+        membership_dir = PROJECT_ROOT / "warehouse" / "metadata"
+        membership_dir.mkdir(parents=True, exist_ok=True)
+        membership.select(["trade_date", "code"]).with_columns(pl.lit(version).alias("dataset_version")).write_parquet(
+            membership_dir / "dataset_version_membership.parquet"
+        )
+        results["membership_records"] = len(membership)
+
     # Manifest
     manifest = {
         "run_id": run_id,
@@ -393,6 +455,7 @@ def run_backfill(etfs: list[str], start: str, end: str) -> dict[str, Any]:
     manifest_path = PROJECT_ROOT / "warehouse" / "metadata" / f"backfill_manifest_{run_id}.json"
     manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2, default=str), encoding="utf-8")
     print(f"\nmanifest: {manifest_path}")
+    print(f"dataset_version: {version} status: {results['dataset_version_status']}")
     print(f"unresolved_jump_dates_510300: {results['unresolved_jump_dates_510300']}")
     return manifest
 
@@ -402,6 +465,7 @@ def main() -> int:
     parser.add_argument("--etfs", default=",".join(ETFS))
     parser.add_argument("--start", default=DEFAULT_START)
     parser.add_argument("--end", default="latest", help="YYYY-MM-DD or 'latest'")
+    parser.add_argument("--replay-run-id", default=None, help="R-05 幂等Replay: 对冻结Raw运行ID重跑")
     args = parser.parse_args()
     etfs = [c.strip() for c in args.etfs.split(",")]
     manifest = run_backfill(etfs, args.start, args.end)
