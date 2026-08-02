@@ -1,0 +1,9 @@
+availability_policy_id,dataset_name,event_time_definition,trade_date_definition,source_published_at_rule,source_observed_at_rule,research_available_at_rule,availability_basis,policy_confidence,timezone,effective_from,effective_to,policy_version,may_be_used_for_historical_research,may_be_used_for_daily_batch,may_be_used_for_live_signal
+TUSHARE_FUND_SHARE_V1_CONSERVATIVE,ETF份额(fund_share),清算完成后,T日,T+1清晨(Tushare惯例待观察),未连续观察,T+2 09:30(第2个后续开放日),CONSERVATIVE_POLICY,LOW,Asia/Shanghai,2026-08-02,,1.0,true,true,false
+TUSHARE_FUND_DAILY_V1,ETF行情(fund_daily),交易日收盘,T日,T日15:00后,已验证,T日15:30,LIVE_OBSERVATION,MEDIUM,Asia/Shanghai,2026-08-02,,1.0,true,true,false
+ETF_NAV_V1_CONSERVATIVE,ETF净值,净值计算完成,T日,T日晚间(惯例待观察),未连续观察,T+1 09:30,CONSERVATIVE_POLICY,LOW,Asia/Shanghai,2026-08-02,,1.0,true,true,false
+INDEX_DAILY_V1,指数日线,交易日收盘,T日,T日15:00后,已验证,T日15:30,LIVE_OBSERVATION,MEDIUM,Asia/Shanghai,2026-08-02,,1.0,true,true,false
+INDEX_TURNOVER_V1_CONSERVATIVE,指数成交额,交易日收盘,T日,T日15:00后,已验证,T日15:30,LIVE_OBSERVATION,MEDIUM,Asia/Shanghai,2026-08-02,,1.0,true,true,false
+FUND_DISCLOSURE_V1,定期报告披露,报告披露,T报告期,披露公告日,未验证,披露公告日09:30,OFFICIAL_DOCUMENTATION,MEDIUM,Asia/Shanghai,2026-08-02,,1.0,true,true,false
+LIFECYCLE_ANNOUNCEMENT_V1,生命周期公告,公告发布,公告日,公告日,未验证,公告/正式生效日,OFFICIAL_DOCUMENTATION,MEDIUM,Asia/Shanghai,2026-08-02,,1.0,true,true,false
+MASTER_DATA_CHANGE_V1,主数据变更,变更生效,变更日,变更日,未验证,变更生效日,OFFICIAL_DOCUMENTATION,MEDIUM,Asia/Shanghai,2026-08-02,,1.0,true,true,false

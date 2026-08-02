@@ -1,0 +1,16 @@
+# Phase 1A-C 覆盖率阈值（运行前版本化，不得执行后修改）
+contract_version: 1.0.0
+updated_at: 2026-08-02
+thresholds:
+  market_data_coverage_ratio: 0.995
+  share_data_coverage_ratio: 0.995
+  economic_flow_coverage_ratio: 0.990
+  nav_flow_coverage_ratio: 0.950
+  close_flow_coverage_ratio: 0.990
+unknown_block_ratio: 0.0
+exclusion_rules:
+  - NOT_LISTED_YET
+  - DELISTED
+  - CONFIRMED_SUSPENSION
+  - CONFIRMED_ADJUSTMENT_DAY
+note: 分母排除上市前/退市后/确认停牌/确认调整日；不得排除普通缺失美化覆盖率

@@ -23,6 +23,11 @@ warehouse/normalized/
 warehouse/canonical/
 warehouse/reference_compatible/
 warehouse/metadata/
+warehouse/calendar/
+warehouse/data_quality/
+warehouse/master_data/
+warehouse/watermark/
+warehouse/publication/
 *.log
 logs/
 

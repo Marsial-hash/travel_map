@@ -48,6 +48,10 @@ ignore = ["S101"]  # 测试/代码中 assert 断言是正常用法
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**/*.py" = ["S108", "S110"]  # 测试允许临时文件与 try-except
+# 内部工具：SQL 表名来自自身注册表(无外部输入)、git 子进程、安全扫描器的静默 except
+"data_pipeline/execution/dual_time.py" = ["S608"]
+"data_pipeline/normalization/master_data.py" = ["S608"]
+"scripts/run_security_scan.py" = ["S607", "S110", "S112"]
 
 [tool.mypy]
 python_version = "3.12"

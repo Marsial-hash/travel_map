@@ -7,12 +7,12 @@ app = FastAPI(title="State Support ETF System", version="0.1.0")
 
 
 @app.get("/api/v1/health")
-def health() -> dict:
+def health() -> dict[str, object]:
     return {"status": "ok", "phase": "0A/0B"}
 
 
 @app.get("/api/v1/etfs")
-def list_etfs() -> dict:
+def list_etfs() -> dict[str, object]:
     """Reference Universe ETF 列表（Phase 1A-R 实现完整版）。"""
     import csv
     from pathlib import Path
