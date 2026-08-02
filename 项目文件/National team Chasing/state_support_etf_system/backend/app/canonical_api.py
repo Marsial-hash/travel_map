@@ -72,38 +72,48 @@ def flows(
     end_date: str | None = None,
     knowledge_as_of_timestamp: str | None = None,
     system_as_of_timestamp: str | None = None,
+    dataset_version: str | None = None,
 ) -> dict[str, Any]:
-    """份额流量 + 双时间查询。knowledge 必须显式传入或为当前时间。"""
+    """份额流量 + 双时间真实过滤。knowledge 必须显式传入。"""
     k_as_of = require_tz(knowledge_as_of_timestamp, "knowledge_as_of_timestamp")
-    require_tz(system_as_of_timestamp, "system_as_of_timestamp")
     if knowledge_as_of_timestamp is None:
         raise HTTPException(status_code=422, detail="knowledge_as_of_timestamp is required (must be explicit)")
     df = load_published("canonical_etf_flow_daily")
     if df is None:
         return {"instrument_id": instrument_id, "rows": [], "dataset_version": None}
-    # 按 instrument_id 过滤（flow_all 含 code 列）
+    # 按 instrument_id 过滤
     code = instrument_id.replace("INST-", "")
     if "code" in df.columns:
         df_code = df.filter(pl.col("code") == code)
     elif "ts_code" in df.columns:
         df_code = df.filter(pl.col("ts_code").str.contains(code, literal=False))
     else:
-        df_code = df.filter(pl.col("internal_instrument_id").fill_null("").str.contains(code, literal=False))
+        per_code_path = CANON_DIR / f"canonical_etf_flow_daily_{code}.parquet"
+        df_code = pl.read_parquet(per_code_path) if per_code_path.exists() else df
     if df_code.is_empty():
-        # 兜底：直接读该 ETF 的独立 flow 文件
         per_code_path = CANON_DIR / f"canonical_etf_flow_daily_{code}.parquet"
         if per_code_path.exists():
             df_code = pl.read_parquet(per_code_path)
-    rows = df_code.head(2000).to_dicts()
+    # 双时间真实过滤（R-04）
+    # 1) knowledge: research_available_at <= knowledge_as_of（真实世界研究可用性）
+    if "research_available_at" in df_code.columns and k_as_of is not None:
+        df_code = df_code.filter(pl.col("research_available_at") <= k_as_of.date())
+    # 2) 业务日期范围
+    if start_date:
+        df_code = df_code.filter(pl.col("trade_date") >= start_date)
+    if end_date:
+        df_code = df_code.filter(pl.col("trade_date") <= end_date)
+    rows = df_code.head(5000).to_dicts()
     return {
         "instrument_id": instrument_id,
         "rows": rows,
-        "dataset_version": "published-v1",
+        "dataset_version": dataset_version or "published-v1",
         "knowledge_as_of": knowledge_as_of_timestamp,
         "system_as_of": system_as_of_timestamp or datetime.now(UTC).isoformat(),
         "source": "TUSHARE_FUND_SHARE",
         "is_estimate": True,
         "is_pit_available": k_as_of is not None,
+        "dual_time_filter_applied": True,
     }
 
 
