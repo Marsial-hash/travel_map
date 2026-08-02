@@ -47,10 +47,14 @@ def run_daily(trade_date: str) -> dict[str, Any]:
         share_daily = build_canonical_share_daily(raw_share, calendar, code)
         latest_share = str(raw_share["trade_date"].max()) if not raw_share.is_empty() else None
         results[code] = {"share_rows": len(share_daily), "latest_share_date": latest_share}
-    wm.set_watermark("ETF_SHARE", "TUSHARE_FUND_SHARE", "TUSHARE_FUND_SHARE_V1_CONSERVATIVE",
-                     latest_completed_trade_date=date.fromisoformat(target[:4] + "-" + target[4:6] + "-" + target[6:]),
-                     latest_observed_trade_date=date.fromisoformat(target[:4] + "-" + target[4:6] + "-" + target[6:]),
-                     watermark_status=WatermarkStatus.UP_TO_DATE)
+    tgt_date = date.fromisoformat(target[:4] + "-" + target[4:6] + "-" + target[6:])
+    wm.set_watermark(
+        "ETF_SHARE", "TUSHARE_FUND_SHARE", "TUSHARE_FUND_SHARE_V1_CONSERVATIVE",
+        latest_completed_trade_date=tgt_date,
+        latest_observed_trade_date=tgt_date,
+        latest_research_available_trade_date=tgt_date,
+        watermark_status=WatermarkStatus.UP_TO_DATE,
+    )
     results["flow_publication_cutoff"] = str(wm.flow_publication_cutoff())
     results["note"] = "日批仅推进缺失数据，不生成实时信号，不执行买卖逻辑"
     return results
